@@ -9,8 +9,6 @@ class Instruction {
 public: 
     Instruction();
     ~Instruction();
-
-private:
     char* ASMInstruction;
     char* Mnemonic;
     char* rdName;
@@ -26,6 +24,10 @@ private:
     char* RS;
     char* RT;
     char* IMM;
+
+    Instruction(const std::string& curInstruction) {
+    
+    }
 }
 
 #endif
