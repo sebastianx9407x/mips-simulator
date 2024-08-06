@@ -14,13 +14,19 @@ public:
     // Constructor
     MIPSParser(const std::string& filename);
     ~MIPSParser();
+    // File Name
+    std::string file;
     // Table to map label to adress for jumping
     std::map<std::string, uint32_t> symbolTable; 
     // List of each instruction sequentially found in file
     std::vector<Instruction> instructions; 
 private:
+    // Getting symbol table 
+    std::map<std::string, uint32_t> createSymbolTable();
+    // Creating instructions 
+    std::vector<Instruction> createInstrucions();
     // Method to open file
-    void readFile(const std::string& filename);
+    void readFile();
     // Method to handle each line
     void parseLine(const std::string& line);
     // Method to output an error if wrong syntax is used
