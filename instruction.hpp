@@ -1,5 +1,5 @@
-#ifndef INSTRUCTION_H
-#define INSTRUCTION_H
+#ifndef INSTRUCTION_HPP
+#define INSTRUCTION_HPP
 
 #include <cstdint>
 #include <cstring>
@@ -7,27 +7,28 @@
 
 class Instruction {
 public: 
+    // Constructors
     Instruction();
+    Instruction(const std::string& curInstruction);
     ~Instruction();
-    char* ASMInstruction;
-    char* Mnemonic;
-    char* rdName;
-    char* rsName;
-    char* rtName;
+    // Attributes
+    std::string ASMInstruction;
+    std::string Mnemonic;
+    std::string rdName;
+    std::string rsName;
+    std::string rtName;
     int16_t Imm;
     uint8_t rd;
     uint8_t rs;
     uint8_t rt;
-    char* Opcode;
-    char* Funct;
-    char* RD;
-    char* RS;
-    char* RT;
-    char* IMM;
+    std::string Opcode;
+    std::string Funct;
+    std::string RD;
+    std::string RS;
+    std::string RT;
+    std::string IMM;
 
-    Instruction(const std::string& curInstruction) {
     
-    }
-}
+};
 
 #endif
