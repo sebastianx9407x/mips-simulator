@@ -15,7 +15,7 @@ public:
     MIPSParser(const std::string& filename);
     ~MIPSParser();
     // File Name
-    std::string file;
+    std::string filename;
     // Table to map label to adress for jumping
     std::map<std::string, uint32_t> symbolTable; 
     // List of each instruction sequentially found in file
