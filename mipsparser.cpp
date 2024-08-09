@@ -25,7 +25,7 @@ std::map<std::string, uint32_t> MIPSParser::createSymbolTable(){
     std::ifstream inputFile(this->filename); 
     // Check if the file is successfully opened 
     if (!inputFile.is_open()) { 
-        std::cerr << "Error opening the file!" << std::endl; 
+        std::cerr << "Err opening the file!" << std::endl; 
         return NULL; 
     } 
   
