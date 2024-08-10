@@ -11,12 +11,13 @@ int main() {
 
 MIPSParser::MIPSParser(const std::string& inputfile)
     : inputfile(inputfile), cleanfile(generateCleanName(inputfile)) {
-    // Print New File and Temp File
-    std::cout << "Input ASM File Name: " << this->inputfile << std::endl;
-    std::cout << "Clean ASM File Name: " << this->cleanfile << std::endl;
+    // Test print New File and Temp File
+    // std::cout << "Input ASM File Name: " << this->inputfile << std::endl;
+    // std::cout << "Clean ASM File Name: " << this->cleanfile << std::endl;
     // Parsing input file and writing to a file with formated code
     cleanASMFile(this->inputfile, this->cleanfile);
     printFile(this->cleanfile);
+    // Creating instructions and symbol tables 
     this->symbolTable = createSymbolTable();
     //this->instructions = createInstrucions();
     // Create symbol tables on first past threw 
@@ -100,7 +101,7 @@ void cleanASMLine(std::string& curLine) {
 
 void printFile(const std::string& inputfile) {
     std::ifstream inputFile(inputfile); 
-    std::cout << inputfile << std::endl;
+    std::cout << "Filename: " << inputfile << std::endl;
     // Check if the file is successfully opened 
     if (!inputFile.is_open()) { 
         std::cerr << "Failed to open file: " << inputfile << std::endl;
