@@ -1,4 +1,4 @@
-#include "mipsparser.hpp"
+#include "MipsParser.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -26,7 +26,7 @@ std::map<std::string, uint32_t> MIPSParser::createSymbolTable(){
     // Check if the file is successfully opened 
     if (!inputFile.is_open()) { 
         std::cerr << "Err opening the file!" << std::endl; 
-        return NULL; 
+        return this->symbolTable; 
     } 
   
     std::string line; // Declare a string variable to store each 
@@ -42,12 +42,17 @@ std::map<std::string, uint32_t> MIPSParser::createSymbolTable(){
     // Close the file 
     inputFile.close(); 
   
-    return 0; 
+    return this->symbolTable; 
 }
     
 std::vector<Instruction> MIPSParser::createInstrucions()
 {
+    return this->instructions;
     
+}
+
+int main() {
+    return 0;
 }
 
 

@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "instruction.hpp"
+#include "Instruction.hpp"
 
 class MIPSParser {
 public:
