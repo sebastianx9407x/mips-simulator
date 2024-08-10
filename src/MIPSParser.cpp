@@ -4,10 +4,10 @@
 
 
 MIPSParser::MIPSParser(const std::string& inputfile)
-    : filename(inputfile), currentAddress(0) {
+    : filename(inputfile) {
     
     this->symbolTable = createSymbolTable();
-    this->instructions = createInstrucions();
+    //this->instructions = createInstrucions();
     // Create symbol tables on first past threw 
     // Open File 
     // Readfile
@@ -17,15 +17,21 @@ MIPSParser::MIPSParser(const std::string& inputfile)
 
 }
 
+MIPSParser::~MIPSParser() {
+    // Destructor implementation
+}
+
 std::map<std::string, uint32_t> MIPSParser::createSymbolTable(){
     // Open file
     // Iterate through file and only add address on instructions
     // Add labels and data values
     // Open the input file named "input.txt" 
     std::ifstream inputFile(this->filename); 
+    std::cout << this->filename << std::endl;
     // Check if the file is successfully opened 
     if (!inputFile.is_open()) { 
-        std::cerr << "Err opening the file!" << std::endl; 
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
         return this->symbolTable; 
     } 
   
@@ -52,6 +58,7 @@ std::vector<Instruction> MIPSParser::createInstrucions()
 }
 
 int main() {
+    MIPSParser testOne("assembly_files/example1.asm");
     return 0;
 }
 
