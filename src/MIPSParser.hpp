@@ -41,6 +41,7 @@ private:
 
 
 void cleanASMFile(const std::string& inputfile, const std::string& outfile);
+void cleanASMLine(std::string& curLine);
 void printFile(const std::string& inputfile);
 const std::string generateCleanName(const std::string& filename);
 

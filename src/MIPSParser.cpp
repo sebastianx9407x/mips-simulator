@@ -1,5 +1,6 @@
 #include "MIPSParser.hpp"
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <string>
 
@@ -65,11 +66,36 @@ void cleanASMFile(const std::string& inputfile, const std::string& outfile) {
     // Reading each line from dirty file, cleaning, writing to clean file
     std::string curLine;
     while (std::getline(dirtyFile, curLine)) {
-        cleanFile << curLine << std::endl; // Write the line followed by a newline character
+        cleanASMLine(curLine);
+        if (!curLine.empty()) {
+            cleanFile << curLine << std::endl; // Write the line followed by a newline character
+        }
     }    
     // Closing File
     dirtyFile.close();
     cleanFile.close();
+}
+
+void cleanASMLine(std::string& curLine) {
+    // Reading only up to comment if existent
+    std::size_t pos = curLine.find('#');
+    if (pos != std::string::npos) {
+        curLine = curLine.substr(0, pos);
+    }
+    // Removing trailing whitespace and making spaces a distance of 1 max
+    std::istringstream stream(curLine);
+    std::string word;
+    std::string result;
+    
+    while (stream >> word) {
+        if (!result.empty()) {
+            result += ' '; 
+        }
+        result += word;
+    }
+    
+    // Update the original string with the normalized result
+    curLine = result;
 }
 
 void printFile(const std::string& inputfile) {
