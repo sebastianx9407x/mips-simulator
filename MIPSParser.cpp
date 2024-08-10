@@ -1,4 +1,4 @@
-#include "MipsParser.hpp"
+#include "MIPSParser.hpp"
 #include <fstream>
 #include <iostream>
 
