@@ -12,7 +12,7 @@
 class MIPSParser {
 public:
     // Constructor
-    MIPSParser(const std::string& filename);
+    MIPSParser(const std::string& inputfile);
     ~MIPSParser();
     // File Name
     std::string filename;
@@ -25,6 +25,8 @@ private:
     std::map<std::string, uint32_t> createSymbolTable();
     // Creating instructions 
     std::vector<Instruction> createInstrucions();
+    // Printing 
+    void cleanASMFile(std::string inputfile);
     // Method to open file
     void readFile();
     // Method to handle each line
@@ -33,6 +35,10 @@ private:
     void reportSyntaxError(const std::string& message);
     // Current address being processed
     uint32_t currentAddress;
+
+
 };
+
+void printFile(std::string inputfile);
 
 #endif

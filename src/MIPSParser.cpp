@@ -2,10 +2,14 @@
 #include <fstream>
 #include <iostream>
 
+int main() {
+    MIPSParser testOne("assembly_files/example1.asm");
+    return 0;
+}
 
 MIPSParser::MIPSParser(const std::string& inputfile)
     : filename(inputfile) {
-    
+    printFile(inputfile);
     this->symbolTable = createSymbolTable();
     //this->instructions = createInstrucions();
     // Create symbol tables on first past threw 
@@ -26,13 +30,26 @@ std::map<std::string, uint32_t> MIPSParser::createSymbolTable(){
     // Iterate through file and only add address on instructions
     // Add labels and data values
     // Open the input file named "input.txt" 
-    std::ifstream inputFile(this->filename); 
-    std::cout << this->filename << std::endl;
+    
+  
+    return this->symbolTable; 
+}
+    
+std::vector<Instruction> MIPSParser::createInstrucions()
+{
+    return this->instructions;
+    
+}
+
+
+
+void printFile(std::string inputfile){
+    std::ifstream inputFile(inputfile); 
+    std::cout << inputfile << std::endl;
     // Check if the file is successfully opened 
     if (!inputFile.is_open()) { 
-        std::cerr << "Failed to open file: " << filename << std::endl;
+        std::cerr << "Failed to open file: " << inputfile << std::endl;
         std::cerr << "Error: " << strerror(errno) << std::endl;
-        return this->symbolTable; 
     } 
   
     std::string line; // Declare a string variable to store each 
@@ -47,19 +64,9 @@ std::map<std::string, uint32_t> MIPSParser::createSymbolTable(){
   
     // Close the file 
     inputFile.close(); 
-  
-    return this->symbolTable; 
-}
-    
-std::vector<Instruction> MIPSParser::createInstrucions()
-{
-    return this->instructions;
     
 }
 
-int main() {
-    MIPSParser testOne("assembly_files/example1.asm");
-    return 0;
-}
+
 
 
