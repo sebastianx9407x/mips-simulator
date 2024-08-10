@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include <map>
 #include "Instruction.hpp"
@@ -15,7 +14,8 @@ public:
     MIPSParser(const std::string& inputfile);
     ~MIPSParser();
     // File Name
-    std::string filename;
+    const std::string inputfile;
+    const std::string cleanfile;
     // Table to map label to adress for jumping
     std::map<std::string, uint32_t> symbolTable; 
     // List of each instruction sequentially found in file
@@ -26,7 +26,7 @@ private:
     // Creating instructions 
     std::vector<Instruction> createInstrucions();
     // Printing 
-    void cleanASMFile(std::string inputfile);
+    
     // Method to open file
     void readFile();
     // Method to handle each line
@@ -39,6 +39,9 @@ private:
 
 };
 
-void printFile(std::string inputfile);
+
+void cleanASMFile(const std::string& inputfile, const std::string& outfile);
+void printFile(const std::string& inputfile);
+const std::string generateCleanName(const std::string& filename);
 
 #endif

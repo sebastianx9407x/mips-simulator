@@ -2,6 +2,5 @@
 .vscode
 .vscode/*
 **/.vscode/
-MIPSSimulator
 build/*
 
