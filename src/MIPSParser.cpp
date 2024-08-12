@@ -1,8 +1,17 @@
 #include "MIPSParser.hpp"
+#include "Instruction.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <vector>
+
+const std::unordered_map<std::string, Section> MIPSParser::sectionMap = {
+    {".text", TEXT},
+    {".data", DATA},
+    {".bss", BSS},
+    {".rodata", RODATA}
+};
 
 int main() {
     MIPSParser testOne("assembly_files/example1.asm");
@@ -16,9 +25,8 @@ MIPSParser::MIPSParser(const std::string& inputfile)
     // std::cout << "Clean ASM File Name: " << this->cleanfile << std::endl;
     // Parsing input file and writing to a file with formated code
     cleanASMFile(this->inputfile, this->cleanfile);
-    printFile(this->cleanfile);
     // Creating instructions and symbol tables 
-    createSymbolTable();
+    createSymbolTables();
     //this->instructions = createInstrucions();
     // Create symbol tables on first past threw 
     // Open File 
@@ -33,10 +41,10 @@ MIPSParser::~MIPSParser() {
     // Destructor implementation
 }
 
-void MIPSParser::createSymbolTable() {
+void MIPSParser::createSymbolTables() {
     // Initializing variables
     uint32_t pc = 0x00400000;
-    Section cur_section = NONE;
+    Section curSection = NONE;
     // Opening clean asm file
     std::ifstream asmFile(this->cleanfile);
     if (!asmFile) {
@@ -44,16 +52,69 @@ void MIPSParser::createSymbolTable() {
         return;
     }
     std::string curLine;
+    std::vector<std::string> stringVector;
     // Proccessing each line
     while (std::getline(asmFile, curLine)) {
-        // Check if line is changing 
+        stringVector = split(curLine, ' ');
+        
+        // Check if empty string
+        if (!stringVector.size()) {
+            continue;
+        }
+        // Setting global
+        if (stringVector[0] == ".globl" && stringVector.size() == 2) {
+            this->global = stringVector[1];
+            continue;
+        }
+        // Determing section
+        auto sectionLoc = sectionMap.find(stringVector[0]);
+        if (sectionLoc != sectionMap.end()) {
+            curSection = sectionLoc->second;
+            continue;
+        }
+        // Parsing labels, data, and isntructions
+        std::string textLabel;
+        std::string dataLabel;
+        std::string curData;
+        std::size_t colonPos;
+        
+        switch (curSection)
+        {
+            case NONE: 
+                break;
+            case TEXT:
+                colonPos = stringVector[0].find(':');
+                if (colonPos != std::string::npos) {
+                    textLabel = stringVector[0].substr(0, colonPos);
+                    this->labelTable[textLabel] = pc; 
+                }
+                else {  
+                    Instruction curInstruction(curLine);
+                    this->instructions.push_back(curInstruction);
+                    pc += 4;
+                }
+                break;
+            case DATA:
+                colonPos = curLine.find(':');
+                if (colonPos == std::string::npos) {
+                    std::cout << "No colon found in data: " << curLine << std::endl;
+                    continue;
+                }
+                dataLabel = curLine.substr(0, colonPos);
+                curData = curLine.substr(colonPos + 1);
+                dataTable[dataLabel] = curData;
+                break;
+            case BSS:
+                std::cout << "BSS NOT IMPLEMENTED" << std::endl;
+                break;
+            case RODATA:
+                std::cout << "RODATA NOT IMPLEMENTED " << std::endl;
+                break;
+            default:
+                std::cout << "NO MATCHES " << std::endl;
+                break;
+        }
     }    
-
-    // Open file
-    // Iterate through file and only add address on instructions
-    // Add labels and data values
-    // Open the input file named "input.txt" 
-    // Close File
     asmFile.close();
     return;
 }
@@ -63,6 +124,19 @@ void MIPSParser::createInstrucions() {
     
     return; 
 }
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> result;
+    std::stringstream ss (s);
+    std::string item;
+
+    while (getline (ss, item, delim)) {
+        result.push_back (item);
+    }
+
+    return result;
+}
+
 
 
 /**

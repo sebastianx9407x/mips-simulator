@@ -5,8 +5,19 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include "Instruction.hpp"
+
+// Enum to represent the current section of the assembly file
+enum Section {
+    NONE,   // No section
+    TEXT,   // .text section
+    DATA,   // .data section
+    BSS,    // .bss section
+    RODATA, // .rodata section
+    // KTEXT,  // .ktext section
+    // KDATA   // .kdata section
+};
 
 class MIPSParser {
 public:
@@ -16,13 +27,19 @@ public:
     // File Name
     const std::string inputfile;
     const std::string cleanfile;
+    
+    static const std::unordered_map<std::string, Section> sectionMap;
+    
     // Table to map label to adress for jumping
-    std::map<std::string, uint32_t> symbolTable; 
+    std::unordered_map<std::string, uint32_t> labelTable; 
+    // Data tables
+    std::unordered_map<std::string, std::string> dataTable; 
     // List of each instruction sequentially found in file
     std::vector<Instruction> instructions; 
+    std::string global;
 private:
     // Getting symbol table 
-    void createSymbolTable();
+    void createSymbolTables();
     // Creating instructions 
     void createInstrucions();
     // Method to open file
@@ -37,16 +54,7 @@ private:
 
 };
 
-// Enum to represent the current section of the assembly file
-enum Section {
-    NONE,   // No section
-    TEXT,   // .text section
-    DATA,   // .data section
-    BSS,    // .bss section
-    RODATA, // .rodata section
-    KTEXT,  // .ktext section
-    KDATA   // .kdata section
-};
+std::vector<std::string> split(const std::string &s, char delim);
 
 void cleanASMFile(const std::string& inputfile, const std::string& outfile);
 void cleanASMLine(std::string& curLine);
