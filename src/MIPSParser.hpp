@@ -40,8 +40,6 @@ public:
 private:
     // Getting symbol table 
     void createSymbolTables();
-    // Creating instructions 
-    void createInstrucions();
     // Method to open file
     void readFile();
     // Method to handle each line
