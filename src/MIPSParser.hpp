@@ -22,11 +22,9 @@ public:
     std::vector<Instruction> instructions; 
 private:
     // Getting symbol table 
-    std::map<std::string, uint32_t> createSymbolTable();
+    void createSymbolTable();
     // Creating instructions 
-    std::vector<Instruction> createInstrucions();
-    // Printing 
-    
+    void createInstrucions();
     // Method to open file
     void readFile();
     // Method to handle each line
@@ -39,6 +37,16 @@ private:
 
 };
 
+// Enum to represent the current section of the assembly file
+enum Section {
+    NONE,   // No section
+    TEXT,   // .text section
+    DATA,   // .data section
+    BSS,    // .bss section
+    RODATA, // .rodata section
+    KTEXT,  // .ktext section
+    KDATA   // .kdata section
+};
 
 void cleanASMFile(const std::string& inputfile, const std::string& outfile);
 void cleanASMLine(std::string& curLine);

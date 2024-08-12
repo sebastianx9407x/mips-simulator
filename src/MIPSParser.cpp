@@ -18,7 +18,7 @@ MIPSParser::MIPSParser(const std::string& inputfile)
     cleanASMFile(this->inputfile, this->cleanfile);
     printFile(this->cleanfile);
     // Creating instructions and symbol tables 
-    this->symbolTable = createSymbolTable();
+    createSymbolTable();
     //this->instructions = createInstrucions();
     // Create symbol tables on first past threw 
     // Open File 
@@ -33,19 +33,35 @@ MIPSParser::~MIPSParser() {
     // Destructor implementation
 }
 
-std::map<std::string, uint32_t> MIPSParser::createSymbolTable() {
+void MIPSParser::createSymbolTable() {
+    // Initializing variables
+    uint32_t pc = 0x00400000;
+    Section cur_section = NONE;
+    // Opening clean asm file
+    std::ifstream asmFile(this->cleanfile);
+    if (!asmFile) {
+        std::cerr << "Error opening asmFile." << std::endl;
+        return;
+    }
+    std::string curLine;
+    // Proccessing each line
+    while (std::getline(asmFile, curLine)) {
+        // Check if line is changing 
+    }    
+
     // Open file
     // Iterate through file and only add address on instructions
     // Add labels and data values
     // Open the input file named "input.txt" 
-    
-  
-    return this->symbolTable; 
+    // Close File
+    asmFile.close();
+    return;
 }
     
-std::vector<Instruction> MIPSParser::createInstrucions() {
-    return this->instructions;
+void MIPSParser::createInstrucions() {
+    std::ifstream asmFile(this->cleanfile);
     
+    return; 
 }
 
 
@@ -75,6 +91,7 @@ void cleanASMFile(const std::string& inputfile, const std::string& outfile) {
     // Closing File
     dirtyFile.close();
     cleanFile.close();
+    return;
 }
 
 void cleanASMLine(std::string& curLine) {
@@ -97,6 +114,7 @@ void cleanASMLine(std::string& curLine) {
     
     // Update the original string with the normalized result
     curLine = result;
+    return;
 }
 
 void printFile(const std::string& inputfile) {
@@ -120,6 +138,7 @@ void printFile(const std::string& inputfile) {
   
     // Close the file 
     inputFile.close(); 
+    return;
     
 }
 
