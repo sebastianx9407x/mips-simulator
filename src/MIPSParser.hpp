@@ -1,7 +1,6 @@
 #ifndef MIPSPARSER_HPP
 #define MIPSPARSER_HPP
 
-
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -9,7 +8,8 @@
 #include "Instruction.hpp"
 
 // Enum to represent the current section of the assembly file
-enum Section {
+enum Section
+{
     NONE,   // No section
     TEXT,   // .text section
     DATA,   // .data section
@@ -19,44 +19,35 @@ enum Section {
     // KDATA   // .kdata section
 };
 
-class MIPSParser {
+class MIPSParser
+{
 public:
     // Constructor
-    MIPSParser(const std::string& inputfile);
+    MIPSParser(const std::string &inputfile);
     ~MIPSParser();
     // File Name
     const std::string inputfile;
     const std::string cleanfile;
-    
-    static const std::unordered_map<std::string, Section> sectionMap;
-    
     // Table to map label to adress for jumping
-    std::unordered_map<std::string, uint32_t> labelTable; 
+    std::unordered_map<std::string, uint32_t> labelTable;
     // Data tables
-    std::unordered_map<std::string, std::string> dataTable; 
+    std::unordered_map<std::string, std::string> dataTable;
     // List of each instruction sequentially found in file
-    std::vector<Instruction> instructions; 
+    std::vector<Instruction> instructions;
     std::string global;
+
 private:
-    // Getting symbol table 
-    void createSymbolTables();
-    // Method to open file
-    void readFile();
-    // Method to handle each line
-    void parseLine(const std::string& line);
-    // Method to output an error if wrong syntax is used
-    void reportSyntaxError(const std::string& message);
+    // Getting symbol table
+    void createTables();
     // Current address being processed
+
     uint32_t currentAddress;
-
-
+    static const std::unordered_map<std::string, Section> sectionMap;
 };
 
-std::vector<std::string> split(const std::string &s, char delim);
-
-void cleanASMFile(const std::string& inputfile, const std::string& outfile);
-void cleanASMLine(std::string& curLine);
-void printFile(const std::string& inputfile);
-const std::string generateCleanName(const std::string& filename);
+void cleanASMFile(const std::string &inputfile, const std::string &outfile);
+void cleanASMLine(std::string &curLine);
+void printFile(const std::string &inputfile);
+const std::string generateCleanName(const std::string &filename);
 
 #endif
