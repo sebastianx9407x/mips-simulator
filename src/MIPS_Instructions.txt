@@ -1,0 +1,55 @@
+1. Arithmetic and Logical Instructions
+
+    add - Add (with overflow): R (add $d, $s, $t)
+    addu - Add unsigned (no overflow): R (addu $d, $s, $t)
+    sub - Subtract (with overflow): R (sub $d, $s, $t)
+    subu - Subtract unsigned (no overflow): R (subu $d, $s, $t)
+    mult - Multiply (signed): R (mult $s, $t)
+    multu - Multiply unsigned: R (multu $s, $t)
+    div - Divide (signed): R (div $s, $t)
+    divu - Divide unsigned: R (divu $s, $t)
+    and - Bitwise AND: R (and $d, $s, $t)
+    or - Bitwise OR: R (or $d, $s, $t)
+    xor - Bitwise XOR: R (xor $d, $s, $t)
+    nor - Bitwise NOR: R (nor $d, $s, $t)
+    sll - Shift left logical: R (sll $d, $t, shamt)
+    srl - Shift right logical: R (srl $d, $t, shamt)
+    sra - Shift right arithmetic: R (sra $d, $t, shamt)
+    slt - Set on less than (signed): R (slt $d, $s, $t)
+    sltu - Set on less than unsigned: R (sltu $d, $s, $t)
+
+2. Data Transfer Instructions
+
+    lw - Load word: I (lw $t, offset($s))
+    sw - Store word: I (sw $t, offset($s))
+    lb - Load byte: I (lb $t, offset($s))
+    sb - Store byte: I (sb $t, offset($s))
+    lbu - Load byte unsigned: I (lbu $t, offset($s))
+    lh - Load halfword: I (lh $t, offset($s))
+    sh - Store halfword: I (sh $t, offset($s))
+    lui - Load upper immediate: I (lui $t, imm)
+
+3. Branch and Jump Instructions
+
+    beq - Branch if equal: I (beq $s, $t, offset)
+    bne - Branch if not equal: I (bne $s, $t, offset)
+    bgtz - Branch if greater than zero: I (bgtz $s, offset)
+    bltz - Branch if less than zero: I (bltz $s, offset)
+    j - Jump: J (j target)
+    jal - Jump and link: J (jal target)
+    jr - Jump register: R (jr $s)
+
+4. Immediate Instructions
+
+    addi - Add immediate (with overflow): I (addi $t, $s, imm)
+    addiu - Add immediate unsigned (no overflow): I (addiu $t, $s, imm)
+    andi - AND immediate: I (andi $t, $s, imm)
+    ori - OR immediate: I (ori $t, $s, imm)
+    xori - XOR immediate: I (xori $t, $s, imm)
+    slti - Set on less than immediate: I (slti $t, $s, imm)
+    sltiu - Set on less than immediate unsigned: I (sltiu $t, $s, imm)
+
+5. Special Instructions
+
+    nop - No operation (often implemented as sll $0, $0, 0): R (nop)
+    syscall - System call (used to request services from the operating system, e.g., input/output): SPECIAL (syscall)

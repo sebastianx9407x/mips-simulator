@@ -2,15 +2,19 @@
 #define INSTRUCTION_HPP
 
 #include <cstdint>
-#include <cstring>
+#include <string>
 #include <iostream>
+#include <unordered_set>
 
-class Instruction {
-public: 
+class Instruction
+{
+public:
     // Constructors
     Instruction();
-    Instruction(const std::string& curInstruction);
+    Instruction(const std::string &curInstruction);
     ~Instruction();
+    //
+    static const std::unordered_set<std::string> instructionSet;
     // Attributes
     std::string ASMInstruction;
     std::string Mnemonic;
@@ -27,8 +31,6 @@ public:
     std::string RS;
     std::string RT;
     std::string IMM;
-
-    
 };
 
 #endif
