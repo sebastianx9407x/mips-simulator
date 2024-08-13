@@ -6,8 +6,10 @@ project(MIPSSimulatorProject VERSION 1.0)
 
 # Add executable and linking files
 add_executable(MIPSSimulator
+    src/MIPS.cpp
     src/MIPSParser.cpp
     src/Instruction.cpp
+    src/Helpers.cpp
 )
 
 # Copy assembly files to the build directory
