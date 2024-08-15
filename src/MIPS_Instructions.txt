@@ -1,56 +1,65 @@
-1. Arithmetic and Logical Instructions
+### 1. Arithmetic and Logical Instructions
 
-    add - Add (with overflow): R (add $d, $s, $t)
-    addu - Add unsigned (no overflow): R (addu $d, $s, $t)
-    sub - Subtract (with overflow): R (sub $d, $s, $t)
-    subu - Subtract unsigned (no overflow): R (subu $d, $s, $t)
-    mult - Multiply (signed): R (mult $s, $t)
-    multu - Multiply unsigned: R (multu $s, $t)
-    div - Divide (signed): R (div $s, $t)
-    divu - Divide unsigned: R (divu $s, $t)
-    and - Bitwise AND: R (and $d, $s, $t)
-    or - Bitwise OR: R (or $d, $s, $t)
-    xor - Bitwise XOR: R (xor $d, $s, $t)
-    nor - Bitwise NOR: R (nor $d, $s, $t)
-    sll - Shift left logical: R (sll $d, $t, shamt)
-    srl - Shift right logical: R (srl $d, $t, shamt)
-    sra - Shift right arithmetic: R (sra $d, $t, shamt)
-    slt - Set on less than (signed): R (slt $d, $s, $t)
-    sltu - Set on less than unsigned: R (sltu $d, $s, $t)
+| Mnemonic | Description                           | Layout                | Opcode  | Funct  |
+|----------|---------------------------------------|-----------------------|---------|--------|
+| `add`    | Add (with overflow)                   | add $d, $s, $t        | 000000  | 100000 |
+| `addu`   | Add unsigned (no overflow)            | addu $d, $s, $t       | 000000  | 100001 |
+| `sub`    | Subtract (with overflow)              | sub $d, $s, $t        | 000000  | 100010 |
+| `subu`   | Subtract unsigned (no overflow)       | subu $d, $s, $t       | 000000  | 100011 |
+| `mult`   | Multiply (signed)                     | mult $s, $t           | 000000  | 011000 |
+| `multu`  | Multiply unsigned                     | multu $s, $t          | 000000  | 011001 |
+| `div`    | Divide (signed)                       | div $s, $t            | 000000  | 011010 |
+| `divu`   | Divide unsigned                       | divu $s, $t           | 000000  | 011011 |
+| `and`    | Bitwise AND                           | and $d, $s, $t        | 000000  | 100100 |
+| `or`     | Bitwise OR                            | or $d, $s, $t         | 000000  | 100101 |
+| `xor`    | Bitwise XOR                           | xor $d, $s, $t        | 000000  | 100110 |
+| `nor`    | Bitwise NOR                           | nor $d, $s, $t        | 000000  | 100111 |
+| `sll`    | Shift left logical                    | sll $d, $t, shamt     | 000000  | 000000 |
+| `srl`    | Shift right logical                   | srl $d, $t, shamt     | 000000  | 000010 |
+| `sra`    | Shift right arithmetic                | sra $d, $t, shamt     | 000000  | 000011 |
+| `slt`    | Set on less than (signed)             | slt $d, $s, $t        | 000000  | 101010 |
+| `sltu`   | Set on less than unsigned             | sltu $d, $s, $t       | 000000  | 101011 |
 
-2. Data Transfer Instructions
+### 2. Data Transfer Instructions
 
-    lw - Load word: I (lw $t, offset($s))
-    sw - Store word: I (sw $t, offset($s))
-    lb - Load byte: I (lb $t, offset($s))
-    sb - Store byte: I (sb $t, offset($s))
-    lbu - Load byte unsigned: I (lbu $t, offset($s))
-    lh - Load halfword: I (lh $t, offset($s))
-    sh - Store halfword: I (sh $t, offset($s))
-    lui - Load upper immediate: I (lui $t, imm)
+| Mnemonic | Description                           | Layout                | Opcode  | Funct  |
+|----------|---------------------------------------|-----------------------|---------|--------|
+| `lw`     | Load word                             | lw $t, offset($s)     | 100011  | NULL   |
+| `sw`     | Store word                            | sw $t, offset($s)     | 101011  | NULL   |
+| `lb`     | Load byte                             | lb $t, offset($s)     | 100000  | NULL   |
+| `sb`     | Store byte                            | sb $t, offset($s)     | 101000  | NULL   |
+| `lbu`    | Load byte unsigned                    | lbu $t, offset($s)    | 100100  | NULL   |
+| `lh`     | Load halfword                         | lh $t, offset($s)     | 100001  | NULL   |
+| `sh`     | Store halfword                        | sh $t, offset($s)     | 101001  | NULL   |
+| `lui`    | Load upper immediate                  | lui $t, imm           | 001111  | NULL   |
 
-3. Branch and Jump Instructions
+### 3. Branch and Jump Instructions
 
-    beq - Branch if equal: I (beq $s, $t, offset)
-    bne - Branch if not equal: I (bne $s, $t, offset)
-    bgtz - Branch if greater than zero: I (bgtz $s, offset)
-    bltz - Branch if less than zero: I (bltz $s, offset)
-    j - Jump: J (j target)
-    jal - Jump and link: J (jal target)
-    jr - Jump register: R (jr $s)
+| Mnemonic | Description                               | Layout                | Opcode  | Funct |
+|----------|-------------------------------------------|-----------------------|---------|-------|
+| `beq`    | Branch if equal                          | beq $s, $t, offset    | 000100  | NULL   |
+| `bne`    | Branch if not equal                      | bne $s, $t, offset    | 000101  | NULL   |
+| `bgtz`   | Branch if greater than zero              | bgtz $s, offset       | 000111  | NULL   |
+| `bltz`   | Branch if less than zero                 | bltz $s, offset       | 000001  | NULL   |
+| `j`      | Jump                                     | j target              | 000010  | NULL   |
+| `jal`    | Jump and link                            | jal target            | 000011  | NULL   |
+| `jr`     | Jump register                            | jr $s                 | 000000  | 001000 |
 
-4. Immediate Instructions
+### 4. Immediate Instructions
 
-    addi - Add immediate (with overflow): I (addi $t, $s, imm)
-    addiu - Add immediate unsigned (no overflow): I (addiu $t, $s, imm)
-    andi - AND immediate: I (andi $t, $s, imm)
-    ori - OR immediate: I (ori $t, $s, imm)
-    xori - XOR immediate: I (xori $t, $s, imm)
-    slti - Set on less than immediate: I (slti $t, $s, imm)
-    sltiu - Set on less than immediate unsigned: I (sltiu $t, $s, imm)
-    
+| Mnemonic | Description                            | Layout                | Opcode  | Funct  |
+|----------|----------------------------------------|-----------------------|---------|--------|
+| `addi`   | Add immediate (with overflow)          | addi $t, $s, imm      | 001000  | NULL   |
+| `addiu`  | Add immediate unsigned (no overflow)   | addiu $t, $s, imm     | 001001  | NULL   |
+| `andi`   | AND immediate                          | andi $t, $s, imm      | 001100  | NULL   |
+| `ori`    | OR immediate                           | ori $t, $s, imm       | 001101  | NULL   |
+| `xori`   | XOR immediate                          | xori $t, $s, imm      | 001110  | NULL   |
+| `slti`   | Set on less than immediate             | slti $t, $s, imm      | 001010  | NULL   |
+| `sltiu`  | Set on less than immediate unsigned    | sltiu $t, $s, imm     | 001011  | NULL   |
 
-5. Special Instructions
+### 5. Special Instructions
 
-    nop - No operation (often implemented as sll $0, $0, 0): R (nop)
-    syscall - System call (used to request services from the operating system, e.g., input/output): SPECIAL (syscall)
+| Mnemonic | Description                            | Layout                | Opcode  | Funct  |
+|----------|----------------------------------------|-----------------------|---------|--------|
+| `nop`    | No operation (often implemented as sll $0, $0, 0) | nop                   | 000000  | 000000 |
+| `syscall`| System call                            | syscall               | 000000  | 001100 |
