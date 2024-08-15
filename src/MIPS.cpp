@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstdint>
 
-const std::unordered_map<std::string, RegisterInfo> registerMap = {
+const std::unordered_map<std::string, RegisterInfo> MIPS::REGISTERMAP = {
     {"$zero", {0, toBinaryString(0)}},
     {"$at", {1, toBinaryString(1)}},
     {"$v0", {2, toBinaryString(2)}},
@@ -41,7 +41,7 @@ const std::unordered_map<std::string, RegisterInfo> registerMap = {
     {"$ra", {31, toBinaryString(31)}}};
 
 // Define and initialize the static const map of instructions
-const std::unordered_map<std::string, InstructionInfo> instructionMap = {
+const std::unordered_map<std::string, InstructionInfo> MIPS::INSTRUCTIONMAP = {
     // Arithmetic and Logical Instructions
     {"add", {"000000", "100000"}},
     {"addu", {"000000", "100001"}},
@@ -88,6 +88,7 @@ const std::unordered_map<std::string, InstructionInfo> instructionMap = {
     {"xori", {"001110", std::nullopt}},
     {"slti", {"001010", std::nullopt}},
     {"sltiu", {"001011", std::nullopt}},
+    {"li", {"001101", std::nullopt}},
 
     // Special Instructions
     {"nop", {"000000", "000000"}},

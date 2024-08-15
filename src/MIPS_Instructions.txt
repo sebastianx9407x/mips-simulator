@@ -48,6 +48,7 @@
     xori - XOR immediate: I (xori $t, $s, imm)
     slti - Set on less than immediate: I (slti $t, $s, imm)
     sltiu - Set on less than immediate unsigned: I (sltiu $t, $s, imm)
+    
 
 5. Special Instructions
 

@@ -13,8 +13,6 @@ public:
     Instruction();
     Instruction(const std::string &curInstruction);
     ~Instruction();
-    //
-    static const std::unordered_set<std::string> instructionSet;
     // Attributes
     std::string ASMInstruction;
     std::string Mnemonic;
