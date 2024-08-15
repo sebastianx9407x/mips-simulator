@@ -17,8 +17,8 @@ struct RegisterInfo
 
 struct InstructionInfo
 {
-    std::string opcode;                  // The opcode in binary string form
-    std::optional<std::string> function; // The function in binary string form (optional)
+    std::string opcode;               // The opcode in binary string form
+    std::optional<std::string> funct; // The function in binary string form (optional)
 };
 
 class MIPS

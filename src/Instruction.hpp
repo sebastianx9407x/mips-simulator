@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_set>
+#include <optional>
 
 class Instruction
 {
@@ -15,7 +16,7 @@ public:
     ~Instruction();
     // Attributes
     std::string ASMInstruction;
-    std::string Mnemonic;
+    std::string mnemonic;
     std::string rdName;
     std::string rsName;
     std::string rtName;
@@ -23,8 +24,8 @@ public:
     uint8_t rd;
     uint8_t rs;
     uint8_t rt;
-    std::string Opcode;
-    std::string Funct;
+    std::string opcode;
+    std::optional<std::string> funct;
     std::string RD;
     std::string RS;
     std::string RT;

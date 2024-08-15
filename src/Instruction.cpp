@@ -16,12 +16,25 @@ Instruction::Instruction(const std::string &curInstruction)
     std::cout << curInstruction << std::endl;
     std::vector instructionTokens = split(curInstruction, ' ');
     std::string mnemonic = instructionTokens[0];
-    std::cout << "mnemonic: " << mnemonic << std::endl;
     if (MIPS::INSTRUCTIONMAP.find(mnemonic) == MIPS::INSTRUCTIONMAP.end())
     {
         throw std::runtime_error("Mnemonic not found: " + mnemonic);
     }
-    this->Mnemonic = mnemonic;
+    this->mnemonic = mnemonic;
+    this->opcode = MIPS::INSTRUCTIONMAP.at(this->mnemonic).opcode;
+    this->funct = MIPS::INSTRUCTIONMAP.at(this->mnemonic).funct;
+
+    // Checking output
+    std::cout << "mnemonic: " << this->mnemonic << std::endl;
+    std::cout << "opcode: " << this->opcode << std::endl;
+    if (this->funct.has_value())
+    {
+        std::cout << "funct: " << *this->funct << std::endl;
+    }
+    else
+    {
+        std::cout << "funct: None" << std::endl;
+    }
 }
 
 Instruction::~Instruction()
