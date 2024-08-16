@@ -4,7 +4,7 @@ A C++ MIPS simulator that executes and debugs MIPS assembly code. This project f
 
 # Note 
 
-This project is still a work in progess as I will update with a list of instructions supported and intend on adding gui later down the road than entirely terminal based. 
+This project is still a work in progress as I will update it with a list of instructions supported and intend on adding gui later down the road rather than entirely terminal-based. 
 
 ## Goals
 
