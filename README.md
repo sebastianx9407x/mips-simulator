@@ -1,7 +1,3 @@
-Here’s a basic `README.md` template for your MIPS simulator project that uses CMake:
-
----
-
 # MIPS Simulator
 
 A C++ MIPS simulator that executes and debugs MIPS assembly code. This project focuses on accuracy and flexibility, simulating the MIPS instruction set, including arithmetic, logic, control operations, and memory handling.
@@ -55,7 +51,3 @@ Place your MIPS assembly files in the `assembly_files` directory within the buil
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-You can replace placeholders like `yourusername` with your actual GitHub username or repository link.
