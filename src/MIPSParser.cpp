@@ -5,8 +5,10 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <format>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 const std::unordered_map<std::string, Section> MIPSParser::sectionMap = {
     {".text", TEXT},
@@ -82,6 +84,34 @@ void MIPSParser::createTables()
                 textLabel = stringVector[0].substr(0, colonPos);
                 this->labelTable[textLabel] = pc;
             }
+            else if (stringVector[0] == "li")
+            {
+                std::string regOne = stringVector[1];
+                std::string imm = stringVector[2];
+                std::int32_t value = handleValue(imm);
+
+                std::string newLineOne;
+                std::string newLineTwo;
+                if (fitsIn16Bits(value))
+                {
+                    std::string newLineOne = std::format("addi {} $zero {}", regOne, value);
+                    Instruction curInstruction(newLineOne);
+                    this->instructions.push_back(curInstruction);
+                    pc += 4;
+                }
+                else
+                {
+                    std::int16_t upper = static_cast<std::int16_t>(value >> 16);
+                    std::int16_t lower = value & 0xFFFF;
+                    newLineOne = std::format("lui {} {}", regOne, upper);
+                    newLineTwo = std::format("ori {} {} {}", regOne, regOne, lower);
+                    Instruction instructionOne(newLineOne);
+                    this->instructions.push_back(instructionOne);
+                    Instruction instructionTwo(newLineTwo);
+                    this->instructions.push_back(instructionTwo);
+                    pc += 8;
+                }
+            }
             else
             {
                 Instruction curInstruction(curLine);
@@ -150,6 +180,9 @@ void cleanASMFile(const std::string &inputfile, const std::string &outfile)
 
 void cleanASMLine(std::string &curLine)
 {
+    // Remove all commas from the line
+    curLine.erase(std::remove(curLine.begin(), curLine.end(), ','), curLine.end());
+
     // Reading only up to comment if existent
     std::size_t pos = curLine.find('#');
     if (pos != std::string::npos)
