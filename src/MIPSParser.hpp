@@ -1,11 +1,12 @@
 #ifndef MIPSPARSER_HPP
 #define MIPSPARSER_HPP
 
+#include "Instruction.hpp"
+#include "Data.hpp"
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <unordered_map>
-#include "Instruction.hpp"
 
 // Enum to represent the current section of the assembly file
 enum Section
@@ -27,11 +28,11 @@ public:
     ~MIPSParser();
     // File Name
     const std::string inputfile;
-    const std::string cleanfile;
+    const std::string instructionfile;
     // Table to map label to adress for jumping
     std::unordered_map<std::string, uint32_t> labelTable;
     // Data tables
-    std::unordered_map<std::string, std::string> dataTable;
+    std::unordered_map<std::string, Data> dataTable;
     // List of each instruction sequentially found in file
     std::vector<Instruction> instructions;
     std::string global;
@@ -39,6 +40,8 @@ public:
 private:
     // Getting symbol table
     void createTables();
+    // Create instructions
+    void createInstructions();
     // Current address being processed
 
     uint32_t currentAddress;

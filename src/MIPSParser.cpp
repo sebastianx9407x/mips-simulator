@@ -1,5 +1,4 @@
 #include "MIPSParser.hpp"
-#include "Instruction.hpp"
 #include "Helpers.hpp"
 #include <fstream>
 #include <sstream>
@@ -17,12 +16,11 @@ const std::unordered_map<std::string, Section> MIPSParser::sectionMap = {
     {".rodata", RODATA}};
 
 MIPSParser::MIPSParser(const std::string &inputfile)
-    : inputfile(inputfile), cleanfile(generateCleanName(inputfile))
+    : inputfile(inputfile), instructionfile(generateCleanName(inputfile))
 {
-    // creating asm file that only contains important elements i.e no comments whitespace
-    cleanASMFile(this->inputfile, this->cleanfile);
     // Creating instructions and symbol tables
     createTables();
+    createInstructions();
 }
 
 MIPSParser::~MIPSParser()
@@ -36,10 +34,16 @@ void MIPSParser::createTables()
     uint32_t pc = 0x00400000;
     Section curSection = NONE;
     // Opening clean asm file
-    std::ifstream asmFile(this->cleanfile);
+    std::ifstream asmFile(this->inputfile);
     if (!asmFile)
     {
-        throw std::runtime_error("Failed to open file: " + this->cleanfile);
+        throw std::runtime_error("Failed to open file: " + this->instructionfile);
+        return;
+    }
+    std::ofstream instrFile(this->instructionfile);
+    if (!instrFile)
+    {
+        throw std::runtime_error("Failed to open file: " + this->instructionfile);
         return;
     }
     std::string curLine;
@@ -47,6 +51,7 @@ void MIPSParser::createTables()
     // Proccessing each line
     while (std::getline(asmFile, curLine))
     {
+        cleanASMLine(curLine);
         stringVector = split(curLine, ' ');
 
         // Check if empty string
@@ -65,70 +70,136 @@ void MIPSParser::createTables()
         if (sectionLoc != sectionMap.end())
         {
             curSection = sectionLoc->second;
+
             continue;
         }
         // Parsing labels, data, and isntructions
         std::string textLabel;
-        std::string dataLabel;
-        std::string curData;
         std::size_t colonPos;
-
+        std::string instrOne;
+        std::string instrTwo;
+        Data curData;
         switch (curSection)
         {
         case NONE:
             break;
         case TEXT:
-            colonPos = stringVector[0].find(':');
+            colonPos = curLine.find(':');
             if (colonPos != std::string::npos)
             {
                 textLabel = stringVector[0].substr(0, colonPos);
                 this->labelTable[textLabel] = pc;
+                if (stringVector.size() > 1)
+                {
+                    stringVector.erase(stringVector.begin());
+                    curLine = curLine.substr(colonPos + 2);
+                }
+                else
+                {
+                    continue;
+                }
             }
-            else if (stringVector[0] == "li")
+            // Will change function
+            if (stringVector[0] == "li")
             {
                 std::string regOne = stringVector[1];
                 std::string imm = stringVector[2];
                 std::int32_t value = handleValue(imm);
 
-                std::string newLineOne;
-                std::string newLineTwo;
                 if (fitsIn16Bits(value))
                 {
-                    std::string newLineOne = std::format("addi {} $zero {}", regOne, value);
-                    Instruction curInstruction(newLineOne);
-                    this->instructions.push_back(curInstruction);
+                    instrOne = std::format("addi {} $zero {}", regOne, value);
+
+                    instrFile << instrOne << std::endl;
                     pc += 4;
                 }
                 else
-                {
+                { // First line
                     std::int16_t upper = static_cast<std::int16_t>(value >> 16);
+                    instrOne = std::format("lui {} {}", regOne, upper);
+                    instrFile << instrOne << std::endl;
+                    pc += 4;
+                    // Second line
                     std::int16_t lower = value & 0xFFFF;
-                    newLineOne = std::format("lui {} {}", regOne, upper);
-                    newLineTwo = std::format("ori {} {} {}", regOne, regOne, lower);
-                    Instruction instructionOne(newLineOne);
-                    this->instructions.push_back(instructionOne);
-                    Instruction instructionTwo(newLineTwo);
-                    this->instructions.push_back(instructionTwo);
-                    pc += 8;
+                    instrTwo = std::format("ori {} {} {}", regOne, regOne, lower);
+                    instrFile << instrTwo << std::endl;
+                    pc += 4;
                 }
             }
+            // else if (stringVector[0] == "la")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "move")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "blt")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "bgt")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "ble")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "bge")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "beqz")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "bnez")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "not")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "neg")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "seq")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+
+            // else if (stringVector[0] == "sne")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "sle")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "sge")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "seq")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
+            // else if (stringVector[0] == "seq")
+            // {
+            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+            // }
             else
             {
-                Instruction curInstruction(curLine);
-                this->instructions.push_back(curInstruction);
+                instrFile << curLine << std::endl;
                 pc += 4;
             }
             break;
         case DATA:
-            colonPos = curLine.find(':');
-            if (colonPos == std::string::npos)
-            {
-                std::cout << "No colon found in data: " << curLine << std::endl;
-                continue;
-            }
-            dataLabel = curLine.substr(0, colonPos);
-            curData = curLine.substr(colonPos + 1);
-            dataTable[dataLabel] = curData;
+            curData = Data(curLine);
+            dataTable[curData.label] = curData;
             break;
         case BSS:
             std::cout << "BSS NOT IMPLEMENTED" << std::endl;
@@ -142,40 +213,30 @@ void MIPSParser::createTables()
         }
     }
     asmFile.close();
+    instrFile.close();
     return;
 }
 
-/**
- * Rules:
- * Remove all comments
- * Only copy non-whitespace lines
- * Start all values at begining of line
- */
-void cleanASMFile(const std::string &inputfile, const std::string &outfile)
+void MIPSParser::createInstructions()
 {
-    // Open file
-    std::ifstream dirtyFile(inputfile);
-    std::ofstream cleanFile(outfile);
-    // Error Handling
-    if (!dirtyFile || !cleanFile)
+    // Initializing variables
+    uint32_t pc = 0x00400000;
+    std::ifstream instrFile(this->instructionfile);
+    if (!instrFile)
     {
-        throw std::runtime_error("Failed to open file: " + inputfile + " or " + outfile);
+        throw std::runtime_error("Failed to open file: " + this->instructionfile);
         return;
     }
-    // Reading each line from dirty file, cleaning, writing to clean file
     std::string curLine;
-    while (std::getline(dirtyFile, curLine))
+    std::vector<std::string> stringVector;
+    // Proccessing each line
+    while (std::getline(instrFile, curLine))
     {
-        cleanASMLine(curLine);
-        if (!curLine.empty())
-        {
-            cleanFile << curLine << std::endl; // Write the line followed by a newline character
-        }
+        Instruction curInstr(curLine);
+        this->instructions.push_back(curInstr);
+        pc += 4;
     }
-    // Closing File
-    dirtyFile.close();
-    cleanFile.close();
-    return;
+    instrFile.close();
 }
 
 void cleanASMLine(std::string &curLine)
@@ -189,6 +250,22 @@ void cleanASMLine(std::string &curLine)
     {
         curLine = curLine.substr(0, pos);
     }
+    // Add a space after each colon if it is not followed by a space
+    std::string::size_type i = 0;
+    while (i < curLine.size())
+    {
+        if (curLine[i] == ':')
+        {
+            // Check if next character is not a space
+            if (i + 1 < curLine.size() && curLine[i + 1] != ' ')
+            {
+                curLine.insert(i + 1, " ");
+                i++; // Skip the added space
+            }
+        }
+        i++;
+    }
+
     // Removing trailing whitespace and making spaces a distance of 1 max
     std::istringstream stream(curLine);
     std::string word;
@@ -244,7 +321,7 @@ const std::string generateCleanName(const std::string &filename)
         filename.compare(filename.size() - extension.size(), extension.size(), extension) == 0)
     {
         // Create the new filename by replacing the extension with "_clean.asm"
-        return filename.substr(0, filename.size() - extension.size()) + "_clean" + extension;
+        return filename.substr(0, filename.size() - extension.size()) + "_instructions" + extension;
     }
 
     // Return the original filename if it does not end with ".asm"
