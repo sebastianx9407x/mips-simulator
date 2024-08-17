@@ -1,8 +1,8 @@
 #include "Helpers.hpp"
 #include <sstream>
 #include <iostream>
-#include <cstdint>
 #include <limits>
+#include <regex>
 
 std::vector<std::string> split(const std::string &s, char delim)
 {
@@ -19,10 +19,28 @@ std::vector<std::string> split(const std::string &s, char delim)
 }
 
 // Function to convert an integer to a binary string
-std::string toBinaryString(uint32_t value)
+std::string toBinaryString(uint32_t value, size_t bitWidth)
 {
+    if (bitWidth == 0 || value >= (1U << bitWidth))
+    {
+        throw std::out_of_range("Value exceeds the bit width range.");
+    }
+
+    std::ostringstream oss;
+    // Create a bitset with the maximum size (32 bits) and get its string representation
     std::bitset<32> bits(value);
-    return bits.to_string();
+    std::string bitString = bits.to_string();
+
+    // Extract the rightmost `bitWidth` bits
+    std::string result = bitString.substr(32 - bitWidth);
+
+    // Ensure the result has the correct bit width by padding with zeros if necessary
+    if (result.length() < bitWidth)
+    {
+        result = std::string(bitWidth - result.length(), '0') + result;
+    }
+
+    return result;
 }
 
 bool fitsIn16Bits(std::int32_t value)
@@ -48,4 +66,16 @@ std::int32_t handleValue(const std::string &str)
         value = std::stoi(str, nullptr, 10); // Convert from decimal
     }
     return value;
+}
+
+bool isInteger(const std::string &str)
+{
+    std::regex integerRegex("^[+-]?\\d+$");
+    return std::regex_match(str, integerRegex);
+}
+
+bool isHexadecimal(const std::string &str)
+{
+    std::regex hexRegex("^0[xX][0-9a-fA-F]+$");
+    return std::regex_match(str, hexRegex);
 }

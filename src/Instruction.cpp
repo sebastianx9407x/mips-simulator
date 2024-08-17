@@ -1,7 +1,7 @@
 #include "Instruction.hpp"
 #include "Helpers.hpp"
 #include <stdexcept>
-
+#include <format>
 // Mapping Instructions to the correct size for inputs
 const std::unordered_map<std::string, int> Instruction::LAYOUT_INPUT_SIZES = {
     {"DST", 4},      //  $d, $s, $t
@@ -125,39 +125,39 @@ const std::unordered_map<std::string, InstructionInfo> Instruction::INSTRUCTIONM
     {"syscall", {"000000", "001100"}}};
 
 // Mapping Registers to their binary and decimal representations
-const std::unordered_map<std::string, RegisterInfo> Instruction::REGISTERMAP = {
-    {"$zero", {0, toBinaryString(0)}},
-    {"$at", {1, toBinaryString(1)}},
-    {"$v0", {2, toBinaryString(2)}},
-    {"$v1", {3, toBinaryString(3)}},
-    {"$a0", {4, toBinaryString(4)}},
-    {"$a1", {5, toBinaryString(5)}},
-    {"$a2", {6, toBinaryString(6)}},
-    {"$a3", {7, toBinaryString(7)}},
-    {"$t0", {8, toBinaryString(8)}},
-    {"$t1", {9, toBinaryString(9)}},
-    {"$t2", {10, toBinaryString(10)}},
-    {"$t3", {11, toBinaryString(11)}},
-    {"$t4", {12, toBinaryString(12)}},
-    {"$t5", {13, toBinaryString(13)}},
-    {"$t6", {14, toBinaryString(14)}},
-    {"$t7", {15, toBinaryString(15)}},
-    {"$s0", {16, toBinaryString(16)}},
-    {"$s1", {17, toBinaryString(17)}},
-    {"$s2", {18, toBinaryString(18)}},
-    {"$s3", {19, toBinaryString(19)}},
-    {"$s4", {20, toBinaryString(20)}},
-    {"$s5", {21, toBinaryString(21)}},
-    {"$s6", {22, toBinaryString(22)}},
-    {"$s7", {23, toBinaryString(23)}},
-    {"$t8", {24, toBinaryString(24)}},
-    {"$t9", {25, toBinaryString(25)}},
-    {"$k0", {26, toBinaryString(26)}},
-    {"$k1", {27, toBinaryString(27)}},
-    {"$gp", {28, toBinaryString(28)}},
-    {"$sp", {29, toBinaryString(29)}},
-    {"$fp", {30, toBinaryString(30)}},
-    {"$ra", {31, toBinaryString(31)}}};
+const std::unordered_map<std::string, RegisterInfo> Instruction::REGISTER_MAP = {
+    {"$zero", {0, "00000"}},
+    {"$at", {1, "00001"}},
+    {"$v0", {2, "00010"}},
+    {"$v1", {3, "00011"}},
+    {"$a0", {4, "00100"}},
+    {"$a1", {5, "00101"}},
+    {"$a2", {6, "00110"}},
+    {"$a3", {7, "00111"}},
+    {"$t0", {8, "01000"}},
+    {"$t1", {9, "01001"}},
+    {"$t2", {10, "01010"}},
+    {"$t3", {11, "01011"}},
+    {"$t4", {12, "01100"}},
+    {"$t5", {13, "01101"}},
+    {"$t6", {14, "01110"}},
+    {"$t7", {15, "01111"}},
+    {"$s0", {16, "10000"}},
+    {"$s1", {17, "10001"}},
+    {"$s2", {18, "10010"}},
+    {"$s3", {19, "10011"}},
+    {"$s4", {20, "10100"}},
+    {"$s5", {21, "10101"}},
+    {"$s6", {22, "10110"}},
+    {"$s7", {23, "10111"}},
+    {"$t8", {24, "11000"}},
+    {"$t9", {25, "11001"}},
+    {"$k0", {26, "11010"}},
+    {"$k1", {27, "11011"}},
+    {"$gp", {28, "11100"}},
+    {"$sp", {29, "11101"}},
+    {"$fp", {30, "11110"}},
+    {"$ra", {31, "11111"}}};
 
 Instruction::Instruction()
 {
@@ -199,7 +199,7 @@ std::ostream &operator<<(std::ostream &os, const Instruction &instruction)
 /**
  * Validates if there are enough tokens for instruction
  */
-void validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks)
+void Instruction::validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks)
 {
     try
     {
@@ -213,6 +213,56 @@ void validateVectorSize(const Instruction &instr, std::string layout, const std:
     catch (const std::out_of_range &)
     {
         throw std::runtime_error("Layout not found in size mapping: " + layout);
+    }
+}
+
+/**
+ * Validates if a register is valid and returns the infor
+ */
+RegisterInfo Instruction::validateRegister(const std::string &reg)
+{
+    try
+    {
+        RegisterInfo regInfo = Instruction::REGISTER_MAP.at(reg);
+        return regInfo;
+    }
+    catch (const std::out_of_range &e)
+    {
+        throw std::runtime_error("Invalid register: " + reg);
+    }
+}
+
+/**
+ * Setting a register to their according values
+ */
+void Instruction::setRegisters(std::string &reg, std::string &regName, uint8_t &dec, std::string &bit)
+{
+    RegisterInfo regInfo = validateRegister(reg);
+    regName = reg;
+    dec = regInfo.decVal;
+    bit = regInfo.binStr;
+}
+
+/**
+ * Setting a register to their according values
+ */
+void Instruction::setOffset(std::string &offset, Instruction &instr)
+{
+    // Check if lable or value
+    if (isInteger(offset) || isHexadecimal(offset))
+    {
+        std::int32_t imm = handleValue(offset);
+        if (!fitsIn16Bits(imm))
+        {
+            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
+            throw std::out_of_range(output);
+        }
+        instr.imm = static_cast<std::int16_t>(imm);
+        instr.immBit = toBinaryString(instr.imm, 16);
+    }
+    else
+    {
+        instr.label = offset;
     }
 }
 
@@ -238,12 +288,14 @@ void Instruction::parseInstruction(Instruction &instr, std::vector<std::string> 
  */
 void Instruction::parseDST(Instruction &instr, std::vector<std::string> &toks)
 {
-    // Register strings
-    instr.rdName = toks[1];
-    instr.rsName = toks[2];
-    instr.rtName = toks[3];
-
-    // Register decimal val
+    // Size check
+    validateVectorSize(instr, "DST", toks);
+    // Register $d
+    setRegisters(toks[1], instr.rdName, instr.rd, instr.rdBit);
+    // Register $s
+    setRegisters(toks[2], instr.rsName, instr.rs, instr.rsBit);
+    // Register $t
+    setRegisters(toks[3], instr.rtName, instr.rt, instr.rtBit);
 }
 
 /**
@@ -251,7 +303,14 @@ void Instruction::parseDST(Instruction &instr, std::vector<std::string> &toks)
  * mnemonic $s, $t
  */
 void Instruction::parseST(Instruction &instr, std::vector<std::string> &toks)
+
 {
+    // Size check
+    validateVectorSize(instr, "ST", toks);
+    // Register $s
+    setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
+    // Register $t
+    setRegisters(toks[2], instr.rtName, instr.rt, instr.rtBit);
 }
 
 /**
@@ -260,14 +319,41 @@ void Instruction::parseST(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseS(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "S", toks);
+    // Register $s
+    setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
 }
 
 /**
  * Format:
- * mnemonic $t, $s imm
+ * mnemonic $d, $t imm
  */
 void Instruction::parseDTIMM(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "DTIMM", toks);
+    // Register $d
+    setRegisters(toks[1], instr.rdName, instr.rd, instr.rdBit);
+    // Register $t
+    setRegisters(toks[2], instr.rtName, instr.rt, instr.rtBit);
+    // Immediate
+    // Check if lable or value
+    if (isInteger(toks[3]) || isHexadecimal(toks[3]))
+    {
+        std::int32_t imm = handleValue(toks[3]);
+        if (!fitsIn16Bits(imm))
+        {
+            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
+            throw std::out_of_range(output);
+        }
+        instr.imm = static_cast<std::int16_t>(imm);
+        instr.immBit = toBinaryString(instr.imm, 5);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid immediate: " + instr.ASMInstruction);
+    }
 }
 
 /**
@@ -276,6 +362,28 @@ void Instruction::parseDTIMM(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseTSIMM(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "TSIMM", toks);
+    // Register $t
+    setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
+    // Register $s
+    setRegisters(toks[2], instr.rsName, instr.rs, instr.rsBit);
+    // Immediate
+    if (isInteger(toks[3]) || isHexadecimal(toks[3]))
+    {
+        std::int32_t imm = handleValue(toks[3]);
+        if (!fitsIn16Bits(imm))
+        {
+            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
+            throw std::out_of_range(output);
+        }
+        instr.imm = static_cast<std::int16_t>(imm);
+        instr.immBit = toBinaryString(instr.imm, 16);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid immediate: " + instr.ASMInstruction);
+    }
 }
 
 /**
@@ -284,6 +392,26 @@ void Instruction::parseTSIMM(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseTIMM(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "TIMM", toks);
+    // Register $t
+    setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
+    // Immediate
+    if (isInteger(toks[2]) || isHexadecimal(toks[2]))
+    {
+        std::int32_t imm = handleValue(toks[2]);
+        if (!fitsIn16Bits(imm))
+        {
+            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
+            throw std::out_of_range(output);
+        }
+        instr.imm = static_cast<std::int16_t>(imm);
+        instr.immBit = toBinaryString(instr.imm, 16);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid immediate: " + instr.ASMInstruction);
+    }
 }
 
 /**
@@ -292,6 +420,14 @@ void Instruction::parseTIMM(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseSTOFF(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "STOFF", toks);
+    // Register $s
+    setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
+    // Register $t
+    setRegisters(toks[2], instr.rtName, instr.rt, instr.rtBit);
+    // Immediate
+    setOffset(toks[2], instr);
 }
 
 /**
@@ -300,6 +436,30 @@ void Instruction::parseSTOFF(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "TOFFS", toks);
+    // Register $t
+    setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
+    // Offset
+    std::string &combo = toks[2];
+    // Find the positions of the parentheses
+    int open = combo.find('(');
+    int close = combo.find(')');
+    // Check if both parentheses are present
+    if (open != std::string::npos && close != std::string::npos)
+    {
+        // Offset
+        std::string imm = combo.substr(0, open);
+        setOffset(imm, instr);
+        // Register $s
+        std::string reg = combo.substr(open + 1, close - open - 1);
+        setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
+    }
+    else
+    {
+        // Data label
+        instr.data = toks[2];
+    }
 }
 
 /**
@@ -308,6 +468,12 @@ void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseSOFF(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "SOFF", toks);
+    // Register $s
+    setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
+    // Immediate
+    setOffset(toks[2], instr);
 }
 
 /**
@@ -316,6 +482,10 @@ void Instruction::parseSOFF(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseTARG(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "TARG", toks);
+    // Setting target
+    instr.label = toks[1];
 }
 
 /**
@@ -324,4 +494,6 @@ void Instruction::parseTARG(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseSyscall(Instruction &instr, std::vector<std::string> &toks)
 {
+    // Size check
+    validateVectorSize(instr, "SYSCALL", toks);
 }

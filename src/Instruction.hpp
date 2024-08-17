@@ -37,7 +37,7 @@ public:
     // Mapping instructions to their binary/decimal representaion
     static const std::unordered_map<std::string, InstructionInfo> INSTRUCTIONMAP;
     // Mapping registers to their binary/decimal representaions
-    static const std::unordered_map<std::string, RegisterInfo> REGISTERMAP;
+    static const std::unordered_map<std::string, RegisterInfo> REGISTER_MAP;
     // Attributes
     std::string ASMInstruction;
     std::string mnemonic;
@@ -55,13 +55,19 @@ public:
     std::string rtBit;
     std::string immBit;
     std::string label;
+    std::string data;
     // Method
     friend std::ostream &operator<<(std::ostream &os, const Instruction &instruction);
 
 private:
     // checking if enough tokens avaibale for instructions
-    void validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks);
+    static void validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks);
     // checking registers validate
+    static RegisterInfo validateRegister(const std::string &reg);
+    // Setting register values
+    static void setRegisters(std::string &reg, std::string &regName, uint8_t &dec, std::string &bit);
+    // Setting offset
+    static void setOffset(std::string &offset, Instruction &instr);
     // parse instructions
     static void parseInstruction(Instruction &instr, std::vector<std::string> &toks);
     // mnemonic $d, $s, $t
