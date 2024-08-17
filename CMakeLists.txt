@@ -13,6 +13,7 @@ add_executable(MIPSSimulator
     src/MIPS.cpp
     src/MIPSParser.cpp
     src/Instruction.cpp
+    src/Data.cpp
     src/Helpers.cpp
 )
 
