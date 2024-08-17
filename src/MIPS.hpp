@@ -3,6 +3,7 @@
 
 #include "Instruction.hpp"
 #include "MIPSParser.hpp"
+#include "Data.hpp"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -17,11 +18,10 @@ public:
     // Table to map label to adress for jumping
     std::unordered_map<std::string, uint32_t> &labelTable;
     // Data tables
-    std::unordered_map<std::string, std::string> &dataTable;
+    std::unordered_map<std::string, Data> &dataTable;
     // List of each instruction sequentially found in file
     std::vector<Instruction> &instructions;
     std::string &global;
-    static const std::unordered_map<std::string, RegisterInfo> REGISTERMAP;
 
 private:
     MIPSParser parser;
