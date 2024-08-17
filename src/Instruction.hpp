@@ -41,21 +41,28 @@ public:
     // Attributes
     std::string ASMInstruction;
     std::string mnemonic;
+    std::string opcode;
+    std::optional<std::string> funct;
+    std::string label;
+    std::string data;
+    uint32_t address;
+    // Registers
     std::string rdName;
     std::string rsName;
     std::string rtName;
+    // Decimal representations
     int16_t imm;
     uint8_t rd;
     uint8_t rs;
     uint8_t rt;
-    std::string opcode;
-    std::optional<std::string> funct;
+    // Binary represenations
     std::string rdBit;
     std::string rsBit;
     std::string rtBit;
     std::string immBit;
-    std::string label;
-    std::string data;
+    // Machine Code
+    std::string machine;
+
     // Method
     friend std::ostream &operator<<(std::ostream &os, const Instruction &instruction);
 
