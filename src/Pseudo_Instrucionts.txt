@@ -1,0 +1,189 @@
+### MIPS Pseudo-Instructions and Their Real Instructions
+
+1. **`li` (Load Immediate)**
+   - **Pseudo-code**:
+     ```
+     li $t0, immediate
+     ```
+   - **For values that fit within 16 bits**:
+     ```
+     addi $t0, $zero, immediate
+     ```
+   - **For values larger than 16 bits**:
+     ```
+     lui $t0, upper(immediate)
+     ori $t0, $t0, lower(immediate)
+     ```
+
+2. **`la` (Load Address)**
+   - **Pseudo-code**:
+     ```
+     la $t0, address
+     ```
+   - **For addresses within 16 bits**:
+     ```
+     addi $t0, $zero, address
+     ```
+   - **For addresses larger than 16 bits**:
+     ```
+     lui $t0, upper(address)
+     ori $t0, $t0, lower(address)
+     ```
+
+3. **`move` (Move)**
+   - **Pseudo-code**:
+     ```
+     move $t0, $t1
+     ```
+   - **Conversion**:
+     ```
+     add $t0, $t1, $zero
+     ```
+
+4. **`bne` (Branch Not Equal)**
+   - **Pseudo-code**:
+     ```
+     bne $t0, $t1, label
+     ```
+   - **Conversion**:
+     ```
+     bne $t0, $t1, label
+     ```
+
+5. **`beq` (Branch Equal)**
+   - **Pseudo-code**:
+     ```
+     beq $t0, $t1, label
+     ```
+   - **Conversion**:
+     ```
+     beq $t0, $t1, label
+     ```
+
+6. **`blt` (Branch Less Than)**
+   - **Pseudo-code**:
+     ```
+     blt $t0, $t1, label
+     ```
+   - **Conversion**:
+     ```
+     slt $at, $t0, $t1
+     bne $at, $zero, label
+     ```
+
+7. **`bgt` (Branch Greater Than)**
+   - **Pseudo-code**:
+     ```
+     bgt $t0, $t1, label
+     ```
+   - **Conversion**:
+     ```
+     slt $at, $t1, $t0
+     bne $at, $zero, label
+     ```
+
+8. **`ble` (Branch Less Than or Equal)**
+   - **Pseudo-code**:
+     ```
+     ble $t0, $t1, label
+     ```
+   - **Conversion**:
+     ```
+     slt $at, $t0, $t1
+     beq $at, $zero, label
+     ```
+
+9. **`bge` (Branch Greater Than or Equal)**
+   - **Pseudo-code**:
+     ```
+     bge $t0, $t1, label
+     ```
+   - **Conversion**:
+     ```
+     slt $at, $t1, $t0
+     beq $at, $zero, label
+     ```
+
+10. **`beqz` (Branch if Equal to Zero)**
+    - **Pseudo-code**:
+      ```
+      beqz $t0, label
+      ```
+    - **Conversion**:
+      ```
+      beq $t0, $zero, label
+      ```
+
+11. **`bnez` (Branch if Not Equal to Zero)**
+    - **Pseudo-code**:
+      ```
+      bnez $t0, label
+      ```
+    - **Conversion**:
+      ```
+      bne $t0, $zero, label
+      ```
+
+12. **`not` (Bitwise Not)**
+    - **Pseudo-code**:
+      ```
+      not $t0, $t1
+      ```
+    - **Conversion**:
+      ```
+      nor $t0, $t1, $zero
+      ```
+
+13. **`neg` (Negate)**
+    - **Pseudo-code**:
+      ```
+      neg $t0, $t1
+      ```
+    - **Conversion**:
+      ```
+      sub $t0, $zero, $t1
+      ```
+
+14. **`seq` (Set on Equal)**
+    - **Pseudo-code**:
+      ```
+      seq $t0, $t1, $t2
+      ```
+    - **Conversion**:
+      ```
+      slt $at, $t1, $t2
+      xori $t0, $at, 1
+      ```
+
+15. **`sne` (Set on Not Equal)**
+    - **Pseudo-code**:
+      ```
+      sne $t0, $t1, $t2
+      ```
+    - **Conversion**:
+      ```
+      slt $at, $t1, $t2
+      xori $t0, $at, 1
+      ```
+
+16. **`sle` (Set on Less or Equal)**
+    - **Pseudo-code**:
+      ```
+      sle $t0, $t1, $t2
+      ```
+    - **Conversion**:
+      ```
+      slt $at, $t1, $t2
+      ori $t0, $at, $zero
+      ```
+
+17. **`sge` (Set on Greater or Equal)**
+    - **Pseudo-code**:
+      ```
+      sge $t0, $t1, $t2
+      ```
+    - **Conversion**:
+      ```
+      slt $at, $t1, $t2
+      xori $t0, $at, 1
+      ```
