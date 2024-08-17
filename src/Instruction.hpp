@@ -10,6 +10,19 @@
 #include <vector>
 #include <optional>
 
+struct InstructionInfo
+{
+    std::string opcode;               // The opcode in binary string form
+    std::optional<std::string> funct; // The function in binary string form (optional)
+};
+
+// Define a structure to hold the register information
+struct RegisterInfo
+{
+    uint32_t decVal;    // The integer representation
+    std::string binStr; // The binary string representation
+};
+
 class Instruction
 {
 public:
@@ -19,7 +32,12 @@ public:
     ~Instruction();
     // Mapping sizes
     static const std::unordered_map<std::string, int> LAYOUT_INPUT_SIZES;
+    // Mapping instructions to parser function
     static const std::unordered_map<std::string, std::function<void(Instruction &, std::vector<std::string> &)>> MNEMONIC_FUNCTION_MAP;
+    // Mapping instructions to their binary/decimal representaion
+    static const std::unordered_map<std::string, InstructionInfo> INSTRUCTIONMAP;
+    // Mapping registers to their binary/decimal representaions
+    static const std::unordered_map<std::string, RegisterInfo> REGISTERMAP;
     // Attributes
     std::string ASMInstruction;
     std::string mnemonic;
@@ -42,7 +60,8 @@ public:
 
 private:
     // checking if enough tokens avaibale for instructions
-    void validateVectorSize(Instruction &instr, std::string layout, std::vector<std::string> &toks);
+    void validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks);
+    // checking registers validate
     // parse instructions
     static void parseInstruction(Instruction &instr, std::vector<std::string> &toks);
     // mnemonic $d, $s, $t

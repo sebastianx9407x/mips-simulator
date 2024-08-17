@@ -8,19 +8,6 @@
 #include <unordered_map>
 #include <optional>
 
-// Define a structure to hold the register information
-struct RegisterInfo
-{
-    uint32_t decVal;    // The integer representation
-    std::string binStr; // The binary string representation
-};
-
-struct InstructionInfo
-{
-    std::string opcode;               // The opcode in binary string form
-    std::optional<std::string> funct; // The function in binary string form (optional)
-};
-
 class MIPS
 {
 public:
@@ -35,7 +22,6 @@ public:
     std::vector<Instruction> &instructions;
     std::string &global;
     static const std::unordered_map<std::string, RegisterInfo> REGISTERMAP;
-    static const std::unordered_map<std::string, InstructionInfo> INSTRUCTIONMAP;
 
 private:
     MIPSParser parser;
