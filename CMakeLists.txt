@@ -15,6 +15,7 @@ add_executable(MIPSSimulator
     src/Instruction.cpp
     src/Data.cpp
     src/Helpers.cpp
+    src/Globals.cpp
 )
 
 # Copy assembly files to the build directory
