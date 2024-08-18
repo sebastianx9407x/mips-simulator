@@ -75,7 +75,6 @@ public:
 private:
     std::string buildMachine(std::string one, std::string two, std::string three, std::string four, std::string five, std::string six);
     // checking if enough tokens avaibale for instructions
-    static void validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks);
     // checking registers validate
     static RegisterInfo validateRegister(const std::string &reg);
     // Setting register values

@@ -227,25 +227,6 @@ std::string Instruction::buildMachine(std::string one, std::string two = "", std
     }
     return machine;
 }
-/**
- * Validates if there are enough tokens for instruction
- */
-void Instruction::validateVectorSize(const Instruction &instr, std::string layout, const std::vector<std::string> &toks)
-{
-    try
-    {
-        int expectedSize = Instruction::LAYOUT_INPUT_SIZES.at(layout);
-
-        if (toks.size() != expectedSize)
-        {
-            throw std::runtime_error("Incorrect number of tokens for instruction: " + instr.ASMInstruction);
-        }
-    }
-    catch (const std::out_of_range &)
-    {
-        throw std::runtime_error("Layout not found in size mapping: " + layout);
-    }
-}
 
 /**
  * Validates if a register is valid and returns the infor
@@ -371,7 +352,7 @@ void Instruction::parseInstruction(Instruction &instr, std::vector<std::string> 
 void Instruction::parseDST(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "DST", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("DST"), toks);
     // Register $d
     setRegisters(toks[1], instr.rdName, instr.rd, instr.rdBit);
     // Register $s
@@ -394,7 +375,7 @@ void Instruction::parseDST(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseST(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "ST", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("ST"), toks);
     // Register $s
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
     // Register $t
@@ -417,7 +398,7 @@ void Instruction::parseST(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseS(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "S", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("S"), toks);
     // Register $s
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
     // Setting registers to null
@@ -439,7 +420,7 @@ void Instruction::parseS(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseDTSHA(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "DTIMM", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("DTSHA"), toks);
     // Register $d
     setRegisters(toks[1], instr.rdName, instr.rd, instr.rdBit);
     // Register $t
@@ -476,7 +457,7 @@ void Instruction::parseDTSHA(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseTSIMM(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "TSIMM", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("TSIMM"), toks);
     // Register $t
     setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
     // Register $s
@@ -499,7 +480,7 @@ void Instruction::parseTSIMM(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseTIMM(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "TIMM", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("TIMM"), toks);
     // Register $t
     setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
     // Immediate
@@ -521,7 +502,7 @@ void Instruction::parseTIMM(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseSTOFF(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "STOFF", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("STOFF"), toks);
     // Register $s
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
     // Register $t
@@ -543,7 +524,7 @@ void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
 {
 
     // Size check
-    validateVectorSize(instr, "TOFFS", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("TOFFS"), toks);
     // Register $t
     setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
     // Offset
@@ -596,7 +577,7 @@ void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseSOFF(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "SOFF", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("SOFF"), toks);
     // Register $s
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
     // Immediate
@@ -616,7 +597,7 @@ void Instruction::parseSOFF(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseTARG(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "TARG", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("TARG"), toks);
     // Setting target
     setOffset(toks[1], instr);
     instr.immBit = toBinaryString(instr.imm, 26);
@@ -636,7 +617,7 @@ void Instruction::parseTARG(Instruction &instr, std::vector<std::string> &toks)
 void Instruction::parseSyscall(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
-    validateVectorSize(instr, "SYSCALL", toks);
+    validateVectorSize(Instruction::LAYOUT_INPUT_SIZES.at("SYSCALL"), toks);
     instr.label = "";
     instr.data = "";
     instr.imm = 255;

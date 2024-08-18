@@ -19,6 +19,14 @@ std::vector<std::string> split(const std::string &s, char delim)
     return result;
 }
 
+void validateVectorSize(int expSize, const std::vector<std::string> &toks)
+{
+    if (toks.size() != expSize)
+    {
+        throw std::runtime_error("Incorrect number of tokens for instruction: " + vectorToString(toks));
+    }
+}
+
 // Function to convert a signed integer to a binary string
 std::string toBinaryString(int32_t value, std::size_t bitWidth)
 {
