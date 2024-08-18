@@ -1,13 +1,15 @@
 #include "Instruction.hpp"
+#include "Globals.hpp"
 #include "Helpers.hpp"
 #include <stdexcept>
 #include <format>
+#include <sstream>
 // Mapping Instructions to the correct size for inputs
 const std::unordered_map<std::string, int> Instruction::LAYOUT_INPUT_SIZES = {
     {"DST", 4},      //  $d, $s, $t
     {"ST", 3},       // mult $s, $t
     {"S", 2},        // jr $s
-    {"DTIMM", 4},    // sll $d, $t, shamt
+    {"DTSHA", 4},    // sll $d, $t, shamt
     {"TSIMM", 4},    // addi $t, $s, imm
     {"TIMM", 3},     // lui $t, imm
     {"STOFF", 4},    // beq $s, $t, offset
@@ -36,9 +38,9 @@ const std::unordered_map<std::string, std::function<void(Instruction &, std::vec
 
     {"jr", parseS}, // jr $s
 
-    {"sll", parseDTIMM}, // sll $d, $t, shamt
-    {"srl", parseDTIMM}, // srl $d, $t, shamt
-    {"sra", parseDTIMM}, // sra $d, $t, shamt
+    {"sll", parseDTSHA}, // sll $d, $t, shamt
+    {"srl", parseDTSHA}, // srl $d, $t, shamt
+    {"sra", parseDTSHA}, // sra $d, $t, shamt
 
     {"addi", parseTSIMM},  // addi $t, $s, imm
     {"addiu", parseTSIMM}, // addiu $t, $s, imm
@@ -92,33 +94,33 @@ const std::unordered_map<std::string, InstructionInfo> Instruction::INSTRUCTIONM
     {"sltu", {"000000", "101011"}},
 
     // Data Transfer Instructions
-    {"lw", {"100011", std::nullopt}},
-    {"sw", {"101011", std::nullopt}},
-    {"lb", {"100000", std::nullopt}},
-    {"sb", {"101000", std::nullopt}},
-    {"lbu", {"100100", std::nullopt}},
-    {"lh", {"100001", std::nullopt}},
-    {"sh", {"101001", std::nullopt}},
-    {"lui", {"001111", std::nullopt}},
+    {"lw", {"100011", ""}},
+    {"sw", {"101011", ""}},
+    {"lb", {"100000", ""}},
+    {"sb", {"101000", ""}},
+    {"lbu", {"100100", ""}},
+    {"lh", {"100001", ""}},
+    {"sh", {"101001", ""}},
+    {"lui", {"001111", ""}},
 
     // Branch and Jump Instructions
-    {"beq", {"000100", std::nullopt}},
-    {"bne", {"000101", std::nullopt}},
-    {"bgtz", {"000111", std::nullopt}},
-    {"bltz", {"000001", std::nullopt}},
-    {"j", {"000010", std::nullopt}},
-    {"jal", {"000011", std::nullopt}},
+    {"beq", {"000100", ""}},
+    {"bne", {"000101", ""}},
+    {"bgtz", {"000111", ""}},
+    {"bltz", {"000001", ""}},
+    {"j", {"000010", ""}},
+    {"jal", {"000011", ""}},
     {"jr", {"000000", "001000"}},
 
     // Immediate Instructions
-    {"addi", {"001000", std::nullopt}},
-    {"addiu", {"001001", std::nullopt}},
-    {"andi", {"001100", std::nullopt}},
-    {"ori", {"001101", std::nullopt}},
-    {"xori", {"001110", std::nullopt}},
-    {"slti", {"001010", std::nullopt}},
-    {"sltiu", {"001011", std::nullopt}},
-    {"li", {"001101", std::nullopt}},
+    {"addi", {"001000", ""}},
+    {"addiu", {"001001", ""}},
+    {"andi", {"001100", ""}},
+    {"ori", {"001101", ""}},
+    {"xori", {"001110", ""}},
+    {"slti", {"001010", ""}},
+    {"sltiu", {"001011", ""}},
+    {"li", {"001101", ""}},
 
     // Special Instructions
     {"nop", {"000000", "000000"}},
@@ -126,6 +128,7 @@ const std::unordered_map<std::string, InstructionInfo> Instruction::INSTRUCTIONM
 
 // Mapping Registers to their binary and decimal representations
 const std::unordered_map<std::string, RegisterInfo> Instruction::REGISTER_MAP = {
+    {"", {0, ""}},
     {"$zero", {0, "00000"}},
     {"$at", {1, "00001"}},
     {"$v0", {2, "00010"}},
@@ -159,12 +162,8 @@ const std::unordered_map<std::string, RegisterInfo> Instruction::REGISTER_MAP = 
     {"$fp", {30, "11110"}},
     {"$ra", {31, "11111"}}};
 
-Instruction::Instruction()
-{
-    // Constructor implementation
-}
-Instruction::Instruction(const std::string &curInstruction)
-    : ASMInstruction(curInstruction)
+Instruction::Instruction(const std::string &curInstruction, uint32_t pc, const std::unordered_map<std::string, uint32_t> &labelTable, const std::unordered_map<std::string, Data> &dataTable)
+    : ASMInstruction(curInstruction), address(pc), labelTable(labelTable), dataTable(dataTable)
 {
     std::vector tokens = split(curInstruction, ' ');
     std::string mnemonic = tokens[0];
@@ -192,10 +191,42 @@ std::ostream &operator<<(std::ostream &os, const Instruction &instruction)
     os << "Instruction: " << instruction.ASMInstruction << "\n"
        << "Mnemonic: " << instruction.mnemonic << "\n"
        << "Opcode: " << instruction.opcode << "\n"
-       << "Funct: " << (instruction.funct ? *instruction.funct : "None") << "\n";
+       << "Funct: " << (instruction.funct.empty() ? "None" : instruction.funct) << "\n"
+       << "Label: " << (instruction.label.empty() ? "None" : instruction.label) << "\n"
+       << "Data: " << (instruction.data.empty() ? "None" : instruction.data) << "\n"
+       << "Address: " << "0x" << std::hex << instruction.address << std::dec << "\n" // Format address as hex
+       << "Registers: " << "\n"
+       << "  RD Name: " << (instruction.rdName.empty() ? "None" : instruction.rdName) << "\n"
+       << "  RS Name: " << (instruction.rsName.empty() ? "None" : instruction.rsName) << "\n"
+       << "  RT Name: " << (instruction.rtName.empty() ? "None" : instruction.rtName) << "\n"
+       << "Decimal Representations: " << "\n"
+       << "  Immediate: " << instruction.imm << "\n"
+       << "  RD: " << static_cast<int>(instruction.rd) << "\n" // Casting to int for better readability
+       << "  RS: " << static_cast<int>(instruction.rs) << "\n"
+       << "  RT: " << static_cast<int>(instruction.rt) << "\n"
+       << "Binary Representations: " << "\n"
+       << "  RD Bit: " << (instruction.rdBit.empty() ? "None" : instruction.rdBit) << "\n"
+       << "  RS Bit: " << (instruction.rsBit.empty() ? "None" : instruction.rsBit) << "\n"
+       << "  RT Bit: " << (instruction.rtBit.empty() ? "None" : instruction.rtBit) << "\n"
+       << "  Immediate Bit: " << (instruction.immBit.empty() ? "None" : instruction.immBit) << "\n"
+       << "Machine Code: " << instruction.machine << "\n";
+
     return os;
 }
 
+std::string Instruction::buildMachine(std::string one, std::string two = "", std::string three = "", std::string four = "", std::string five = "", std::string six = "")
+{
+    std::ostringstream oss;
+    oss << one << two << three << four << five << six;
+    std::string machine = oss.str();
+    if (machine.length() != 32)
+    {
+        std::ostringstream oss;
+        oss << "Invalid machine code length: " << machine.size();
+        throw std::range_error(oss.str());
+    }
+    return machine;
+}
 /**
  * Validates if there are enough tokens for instruction
  */
@@ -248,6 +279,8 @@ void Instruction::setRegisters(std::string &reg, std::string &regName, uint8_t &
  */
 void Instruction::setOffset(std::string &offset, Instruction &instr)
 {
+    auto dataKey = instr.dataTable.find(offset);
+    auto labelKey = instr.labelTable.find(offset);
     // Check if lable or value
     if (isInteger(offset) || isHexadecimal(offset))
     {
@@ -259,10 +292,59 @@ void Instruction::setOffset(std::string &offset, Instruction &instr)
         }
         instr.imm = static_cast<std::int16_t>(imm);
         instr.immBit = toBinaryString(instr.imm, 16);
+        instr.label = "";
+        instr.data = "";
+    }
+    // Checking if offset is data
+    else if (dataKey != instr.dataTable.end())
+    {
+        // Setting value
+        instr.data = offset;
+        instr.label = "";
+        // Data value
+        Data dataTarget = dataKey->second;
+        int16_t newOffset = static_cast<std::int16_t>(dataTarget.address - DATA_START);
+        instr.imm = newOffset;
+        instr.immBit = toBinaryString(instr.imm, 16);
+    }
+    else if (labelKey != instr.labelTable.end())
+    {
+        // Setting value
+        instr.data = "";
+        instr.label = offset;
+        // Data value
+        uint32_t labelTarget = labelKey->second;
+        int16_t newOffset = static_cast<std::int16_t>((labelTarget - (instr.address + 4)) / 4);
+        instr.imm = newOffset;
+        instr.immBit = toBinaryString(instr.imm, 16);
     }
     else
     {
-        instr.label = offset;
+        throw std::runtime_error("Error: String is not a valid offset: " + offset);
+    }
+}
+
+/**
+ * Setting a register to their according values
+ */
+void Instruction::setIMM(std::string &immStr, Instruction &instr)
+{
+    // Check if lable or value
+    if (isInteger(immStr) || isHexadecimal(immStr))
+    {
+        std::int32_t imm = handleValue(immStr);
+        if (!fitsIn16Bits(imm))
+        {
+            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
+            throw std::out_of_range(output);
+        }
+        instr.imm = static_cast<std::int16_t>(imm);
+        instr.immBit = toBinaryString(instr.imm, 16);
+        instr.label = "";
+    }
+    else
+    {
+        throw std::runtime_error("Error: String is not a valid integer: " + immStr);
     }
 }
 
@@ -296,6 +378,13 @@ void Instruction::parseDST(Instruction &instr, std::vector<std::string> &toks)
     setRegisters(toks[2], instr.rsName, instr.rs, instr.rsBit);
     // Register $t
     setRegisters(toks[3], instr.rtName, instr.rt, instr.rtBit);
+    // Setting everything else to none
+    instr.label = "";
+    instr.data = "";
+    instr.imm = 255;
+    instr.immBit = "";
+    // Making machine code
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, instr.rtBit, instr.rdBit, "00000", instr.funct);
 }
 
 /**
@@ -303,7 +392,6 @@ void Instruction::parseDST(Instruction &instr, std::vector<std::string> &toks)
  * mnemonic $s, $t
  */
 void Instruction::parseST(Instruction &instr, std::vector<std::string> &toks)
-
 {
     // Size check
     validateVectorSize(instr, "ST", toks);
@@ -311,6 +399,15 @@ void Instruction::parseST(Instruction &instr, std::vector<std::string> &toks)
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
     // Register $t
     setRegisters(toks[2], instr.rtName, instr.rt, instr.rtBit);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    instr.label = "";
+    instr.data = "";
+    instr.imm = 255;
+    instr.immBit = "";
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, instr.rtBit, "0000000000", instr.funct);
 }
 
 /**
@@ -323,13 +420,23 @@ void Instruction::parseS(Instruction &instr, std::vector<std::string> &toks)
     validateVectorSize(instr, "S", toks);
     // Register $s
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    setRegisters(reg, instr.rtName, instr.rt, instr.rtBit);
+    instr.label = "";
+    instr.data = "";
+    instr.imm = 255;
+    instr.immBit = "";
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, "000000000000000", instr.funct);
 }
 
 /**
  * Format:
- * mnemonic $d, $t imm
+ * mnemonic $d, $t shamt
  */
-void Instruction::parseDTIMM(Instruction &instr, std::vector<std::string> &toks)
+void Instruction::parseDTSHA(Instruction &instr, std::vector<std::string> &toks)
 {
     // Size check
     validateVectorSize(instr, "DTIMM", toks);
@@ -338,7 +445,6 @@ void Instruction::parseDTIMM(Instruction &instr, std::vector<std::string> &toks)
     // Register $t
     setRegisters(toks[2], instr.rtName, instr.rt, instr.rtBit);
     // Immediate
-    // Check if lable or value
     if (isInteger(toks[3]) || isHexadecimal(toks[3]))
     {
         std::int32_t imm = handleValue(toks[3]);
@@ -352,8 +458,15 @@ void Instruction::parseDTIMM(Instruction &instr, std::vector<std::string> &toks)
     }
     else
     {
-        throw std::invalid_argument("Invalid immediate: " + instr.ASMInstruction);
+        throw std::invalid_argument("Invalid shamt: " + instr.ASMInstruction);
     }
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
+    instr.label = "";
+    instr.data = "";
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, "00000", instr.rtBit, instr.rdBit, instr.immBit);
 }
 
 /**
@@ -369,21 +482,14 @@ void Instruction::parseTSIMM(Instruction &instr, std::vector<std::string> &toks)
     // Register $s
     setRegisters(toks[2], instr.rsName, instr.rs, instr.rsBit);
     // Immediate
-    if (isInteger(toks[3]) || isHexadecimal(toks[3]))
-    {
-        std::int32_t imm = handleValue(toks[3]);
-        if (!fitsIn16Bits(imm))
-        {
-            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
-            throw std::out_of_range(output);
-        }
-        instr.imm = static_cast<std::int16_t>(imm);
-        instr.immBit = toBinaryString(instr.imm, 16);
-    }
-    else
-    {
-        throw std::invalid_argument("Invalid immediate: " + instr.ASMInstruction);
-    }
+    setIMM(toks[3], instr);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    instr.label = "";
+    instr.data = "";
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, instr.rtBit, instr.immBit);
 }
 
 /**
@@ -397,21 +503,15 @@ void Instruction::parseTIMM(Instruction &instr, std::vector<std::string> &toks)
     // Register $t
     setRegisters(toks[1], instr.rtName, instr.rt, instr.rtBit);
     // Immediate
-    if (isInteger(toks[2]) || isHexadecimal(toks[2]))
-    {
-        std::int32_t imm = handleValue(toks[2]);
-        if (!fitsIn16Bits(imm))
-        {
-            std::string output = std::format("Instruction: {} contains invalid immediate", instr.ASMInstruction);
-            throw std::out_of_range(output);
-        }
-        instr.imm = static_cast<std::int16_t>(imm);
-        instr.immBit = toBinaryString(instr.imm, 16);
-    }
-    else
-    {
-        throw std::invalid_argument("Invalid immediate: " + instr.ASMInstruction);
-    }
+    setIMM(toks[2], instr);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
+    instr.label = "";
+    instr.data = "";
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, "00000", instr.rtBit, instr.immBit);
 }
 
 /**
@@ -428,6 +528,11 @@ void Instruction::parseSTOFF(Instruction &instr, std::vector<std::string> &toks)
     setRegisters(toks[2], instr.rtName, instr.rt, instr.rtBit);
     // Immediate
     setOffset(toks[2], instr);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, instr.rtBit, instr.immBit);
 }
 
 /**
@@ -436,6 +541,7 @@ void Instruction::parseSTOFF(Instruction &instr, std::vector<std::string> &toks)
  */
 void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
 {
+
     // Size check
     validateVectorSize(instr, "TOFFS", toks);
     // Register $t
@@ -446,6 +552,7 @@ void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
     int open = combo.find('(');
     int close = combo.find(')');
     // Check if both parentheses are present
+    auto dataKey = instr.dataTable.find(toks[2]);
     if (open != std::string::npos && close != std::string::npos)
     {
         // Offset
@@ -455,11 +562,31 @@ void Instruction::parseTOFFS(Instruction &instr, std::vector<std::string> &toks)
         std::string reg = combo.substr(open + 1, close - open - 1);
         setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
     }
+    // Checking if offset is data
+    else if (dataKey != instr.dataTable.end())
+    {
+
+        // Setting value
+        instr.data = toks[2];
+        instr.label = "";
+        std::string reg = "$at";
+        setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
+        // Data value
+        Data dataTarget = dataKey->second;
+        int16_t newOffset = static_cast<std::int16_t>(dataTarget.address - DATA_START);
+        instr.imm = newOffset;
+        instr.immBit = toBinaryString(instr.imm, 16);
+        instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, instr.rtBit, instr.immBit);
+    }
     else
     {
-        // Data label
-        instr.data = toks[2];
+        throw std::runtime_error("Invalid offset($s) or offset for instruction (" + instr.ASMInstruction + ") with offset: " + toks[2]);
     }
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    // Machine Code
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, instr.rtBit, instr.immBit);
 }
 
 /**
@@ -474,6 +601,12 @@ void Instruction::parseSOFF(Instruction &instr, std::vector<std::string> &toks)
     setRegisters(toks[1], instr.rsName, instr.rs, instr.rsBit);
     // Immediate
     setOffset(toks[2], instr);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    setRegisters(reg, instr.rtName, instr.rt, instr.rtBit);
+    // Machine Code
+    instr.machine = instr.buildMachine(instr.opcode, instr.rsBit, "00000", instr.immBit);
 }
 
 /**
@@ -485,7 +618,15 @@ void Instruction::parseTARG(Instruction &instr, std::vector<std::string> &toks)
     // Size check
     validateVectorSize(instr, "TARG", toks);
     // Setting target
-    instr.label = toks[1];
+    setOffset(toks[1], instr);
+    instr.immBit = toBinaryString(instr.imm, 26);
+    // Setting registers to null
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
+    setRegisters(reg, instr.rtName, instr.rt, instr.rtBit);
+    // Machine
+    instr.machine = instr.buildMachine(instr.opcode, instr.immBit);
 }
 
 /**
@@ -496,4 +637,13 @@ void Instruction::parseSyscall(Instruction &instr, std::vector<std::string> &tok
 {
     // Size check
     validateVectorSize(instr, "SYSCALL", toks);
+    instr.label = "";
+    instr.data = "";
+    instr.imm = 255;
+    instr.immBit = "";
+    std::string reg = "";
+    setRegisters(reg, instr.rdName, instr.rd, instr.rdBit);
+    setRegisters(reg, instr.rsName, instr.rs, instr.rsBit);
+    setRegisters(reg, instr.rtName, instr.rt, instr.rtBit);
+    instr.machine = instr.buildMachine(instr.opcode, "00000000000000000000", instr.funct);
 }
