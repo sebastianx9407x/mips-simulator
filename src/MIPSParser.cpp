@@ -1,5 +1,6 @@
 #include "MIPSParser.hpp"
 #include "Helpers.hpp"
+#include "Globals.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -31,7 +32,8 @@ MIPSParser::~MIPSParser()
 void MIPSParser::createTables()
 {
     // Initializing variables
-    uint32_t pc = 0x00400000;
+    uint32_t pc = PC_START;
+    uint32_t dataAddress = DATA_START;
     Section curSection = NONE;
     // Opening clean asm file
     std::ifstream asmFile(this->inputfile);
@@ -198,8 +200,9 @@ void MIPSParser::createTables()
             }
             break;
         case DATA:
-            curData = Data(curLine);
+            curData = Data(curLine, dataAddress);
             dataTable[curData.label] = curData;
+            dataAddress += 4;
             break;
         case BSS:
             std::cout << "BSS NOT IMPLEMENTED" << std::endl;
@@ -220,7 +223,7 @@ void MIPSParser::createTables()
 void MIPSParser::createInstructions()
 {
     // Initializing variables
-    uint32_t pc = 0x00400000;
+    uint32_t pc = PC_START;
     std::ifstream instrFile(this->instructionfile);
     if (!instrFile)
     {
@@ -232,7 +235,7 @@ void MIPSParser::createInstructions()
     // Proccessing each line
     while (std::getline(instrFile, curLine))
     {
-        Instruction curInstr(curLine);
+        Instruction curInstr(curLine, pc, this->labelTable, this->dataTable);
         this->instructions.push_back(curInstr);
         pc += 4;
     }
