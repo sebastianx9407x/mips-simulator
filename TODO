@@ -1,0 +1,3 @@
+For Now this works but to fix code:
+FIX HOW lw $t, offset($s)  is done by adding lui $1 4097
+
