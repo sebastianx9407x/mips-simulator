@@ -6,6 +6,7 @@
 
 std::vector<std::string> split(const std::string &s, char delim)
 {
+
     std::vector<std::string> result;
     std::stringstream ss(s);
     std::string item;
@@ -18,15 +19,23 @@ std::vector<std::string> split(const std::string &s, char delim)
     return result;
 }
 
-// Function to convert an integer to a binary string
-std::string toBinaryString(uint32_t value, size_t bitWidth)
+// Function to convert a signed integer to a binary string
+std::string toBinaryString(int32_t value, std::size_t bitWidth)
 {
-    if (bitWidth == 0 || value >= (1U << bitWidth))
+    // Check if bitWidth is valid and if the value can be represented in the given bitWidth
+    if (bitWidth == 0 || value >= (1 << (bitWidth - 1)) || value < -(1 << (bitWidth - 1)))
     {
         throw std::out_of_range("Value exceeds the bit width range.");
     }
 
     std::ostringstream oss;
+
+    // Handle negative values for signed integers
+    if (value < 0)
+    {
+        value = (1 << bitWidth) + value; // Convert negative value to its two's complement form
+    }
+
     // Create a bitset with the maximum size (32 bits) and get its string representation
     std::bitset<32> bits(value);
     std::string bitString = bits.to_string();

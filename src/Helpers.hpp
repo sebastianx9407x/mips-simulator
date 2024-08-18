@@ -8,7 +8,7 @@
 
 std::vector<std::string> split(const std::string &s, char delim);
 
-std::string toBinaryString(uint32_t value, size_t bitWidth);
+std::string toBinaryString(int32_t value, std::size_t bitWidth);
 
 bool fitsIn16Bits(std::int32_t value);
 
