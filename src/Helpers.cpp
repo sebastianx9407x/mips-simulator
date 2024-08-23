@@ -13,7 +13,10 @@ std::vector<std::string> split(const std::string &s, char delim)
 
     while (getline(ss, item, delim))
     {
-        result.push_back(item);
+        if (!item.empty()) // Only add non-empty items
+        {
+            result.push_back(item);
+        }
     }
 
     return result;
