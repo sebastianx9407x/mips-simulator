@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 // Enum to represent the current section of the assembly file
 enum Section
@@ -26,6 +27,8 @@ public:
     // Constructor
     MIPSParser(const std::string &inputfile);
     ~MIPSParser();
+    // Pseudo Instructions
+    static const std::unordered_set<std::string> PSEUDO_INSTRUCTIONS;
     // File Name
     const std::string inputfile;
     const std::string instructionfile;
@@ -38,6 +41,9 @@ public:
     std::string global;
 
 private:
+    // Handle Pseudo Instruction
+    uint32_t handlePseudoInstr(std::vector<std::string> &stringVector, uint32_t pc);
+
     // Getting symbol table
     void createTables();
     // Create instructions

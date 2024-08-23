@@ -16,6 +16,26 @@ const std::unordered_map<std::string, Section> MIPSParser::sectionMap = {
     {".bss", BSS},
     {".rodata", RODATA}};
 
+const std::unordered_set<std::string> MIPSParser::PSEUDO_INSTRUCTIONS = {
+    "li",   // Load Immediate
+    "la",   // Load Address
+    "move", // Move from one register to another
+    "bne",  // Branch Not Equal
+    "beq",  // Branch Equal
+    "blt",  // Branch Less Than
+    "bgt",  // Branch Greater Than
+    "ble",  // Branch Less Than or Equal
+    "bge",  // Branch Greater Than or Equal
+    "beqz", // Branch if Equal to Zero
+    "bnez", // Branch if Not Equal to Zero
+    "not",  // Bitwise Not
+    "neg",  // Negate
+    "seq",  // Set on Equal
+    "sne",  // Set on Not Equal
+    "sle",  // Set on Less or Equal
+    "sge",  // Set on Greater or Equal
+};
+
 MIPSParser::MIPSParser(const std::string &inputfile)
     : inputfile(inputfile), instructionfile(generateCleanName(inputfile))
 {
@@ -39,7 +59,7 @@ void MIPSParser::createTables()
     std::ifstream asmFile(this->inputfile);
     if (!asmFile)
     {
-        throw std::runtime_error("Failed to open file: " + this->instructionfile);
+        throw std::runtime_error("Failed to open file: " + this->inputfile);
         return;
     }
     std::ofstream instrFile(this->instructionfile);
@@ -102,102 +122,8 @@ void MIPSParser::createTables()
                 }
             }
             // Will change function
-            if (stringVector[0] == "li")
-            {
-                std::string regOne = stringVector[1];
-                std::string imm = stringVector[2];
-                std::int32_t value = handleValue(imm);
-
-                if (fitsIn16Bits(value))
-                {
-                    instrOne = std::format("addi {} $zero {}", regOne, value);
-
-                    instrFile << instrOne << std::endl;
-                    pc += 4;
-                }
-                else
-                { // First line
-                    std::int16_t upper = static_cast<std::int16_t>(value >> 16);
-                    instrOne = std::format("lui {} {}", regOne, upper);
-                    instrFile << instrOne << std::endl;
-                    pc += 4;
-                    // Second line
-                    std::int16_t lower = value & 0xFFFF;
-                    instrTwo = std::format("ori {} {} {}", regOne, regOne, lower);
-                    instrFile << instrTwo << std::endl;
-                    pc += 4;
-                }
-            }
-            // else if (stringVector[0] == "la")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "move")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "blt")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "bgt")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "ble")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "bge")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "beqz")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "bnez")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "not")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "neg")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "seq")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-
-            // else if (stringVector[0] == "sne")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "sle")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "sge")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "seq")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            // else if (stringVector[0] == "seq")
-            // {
-            //     throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
-            // }
-            else
-            {
-                instrFile << curLine << std::endl;
-                pc += 4;
-            }
+            instrFile << curLine << std::endl;
+            pc += 4;
             break;
         case DATA:
             curData = Data(curLine, dataAddress);
@@ -235,9 +161,17 @@ void MIPSParser::createInstructions()
     // Proccessing each line
     while (std::getline(instrFile, curLine))
     {
-        Instruction curInstr(curLine, pc, this->labelTable, this->dataTable);
-        this->instructions.push_back(curInstr);
-        pc += 4;
+        stringVector = split(curLine, ' ');
+        if (PSEUDO_INSTRUCTIONS.find(stringVector[0]) != PSEUDO_INSTRUCTIONS.end())
+        {
+            pc = handlePseudoInstr(stringVector, pc);
+        }
+        else
+        {
+            Instruction curInstr(curLine, pc, this->labelTable, this->dataTable);
+            this->instructions.push_back(curInstr);
+            pc += 4;
+        }
     }
     instrFile.close();
 }
@@ -245,7 +179,7 @@ void MIPSParser::createInstructions()
 void cleanASMLine(std::string &curLine)
 {
     // Remove all commas from the line
-    curLine.erase(std::remove(curLine.begin(), curLine.end(), ','), curLine.end());
+    std::replace(curLine.begin(), curLine.end(), ',', ' ');
 
     // Reading only up to comment if existent
     std::size_t pos = curLine.find('#');
@@ -329,4 +263,135 @@ const std::string generateCleanName(const std::string &filename)
 
     // Return the original filename if it does not end with ".asm"
     return filename;
+}
+
+uint32_t MIPSParser::handlePseudoInstr(std::vector<std::string> &stringVector, uint32_t pc)
+{
+    std::string instrOne = "";
+    std::string instrTwo = "";
+    std::string regOne;
+    std::string regTwo;
+    std::string label;
+    std::string immStr;
+    std::int32_t imm;
+    Data data;
+    // Will change function
+    if (stringVector[0] == "li")
+    {
+        validateVectorSize(3, stringVector);
+        regOne = stringVector[1];
+        immStr = stringVector[2];
+        imm = handleValue(immStr);
+
+        if (fitsIn16Bits(imm))
+        {
+            instrOne = std::format("addi {} $zero {}", regOne, imm);
+        }
+        else
+        { // First line
+            std::int16_t upper = static_cast<std::int16_t>(imm >> 16);
+            instrOne = std::format("lui {} {}", regOne, upper);
+            // Second line
+            std::int16_t lower = imm & 0xFFFF;
+            instrTwo = std::format("ori {} {} {}", regOne, regOne, lower);
+        }
+    }
+    else if (stringVector[0] == "la")
+    {
+        validateVectorSize(3, stringVector);
+        regOne = stringVector[1];
+        data = this->dataTable.at(stringVector[2]);
+        imm = data.address;
+        if (fitsIn16Bits(imm))
+        {
+            instrOne = std::format("addi {} $zero {}", regOne, imm);
+        }
+        else
+        { // First line
+            std::int16_t upper = static_cast<std::int16_t>(imm >> 16);
+            instrOne = std::format("lui {} {}", regOne, upper);
+            // Second line
+            std::int16_t lower = imm & 0xFFFF;
+            instrTwo = std::format("ori {} {} {}", regOne, regOne, lower);
+        }
+    }
+    else if (stringVector[0] == "move")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "blt")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "bgt")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "ble")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "bge")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "beqz")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "bnez")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "not")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "neg")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "seq")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "sne")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "sle")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "sge")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "seq")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else if (stringVector[0] == "seq")
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    else
+    {
+        throw std::runtime_error("pseudocode not supported: " + stringVector[0]);
+    }
+    // Adding new instructions
+    if (!instrOne.empty())
+    {
+        Instruction curInstr(instrOne, pc, this->labelTable, this->dataTable);
+        this->instructions.push_back(curInstr);
+        pc += 4;
+    }
+    if (!instrTwo.empty())
+    {
+        Instruction curInstr(instrTwo, pc, this->labelTable, this->dataTable);
+        this->instructions.push_back(curInstr);
+        pc += 4;
+    }
+
+    return pc;
 }
