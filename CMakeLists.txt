@@ -13,6 +13,8 @@ add_executable(MIPSSimulator
     src/MIPS.cpp
     src/MIPSParser.cpp
     src/Instruction.cpp
+    src/DataSegment.cpp
+    src/Heap.cpp
     src/Data.cpp
     src/Helpers.cpp
     src/Globals.cpp
@@ -27,6 +29,9 @@ add_custom_command(TARGET MIPSSimulator POST_BUILD
 
 # Include directories for header files
 target_include_directories(MIPSSimulator PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+# Include directories for header files
+target_include_directories(MIPSSimulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 
 
