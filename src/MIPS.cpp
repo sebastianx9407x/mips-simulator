@@ -6,7 +6,7 @@
 
 int main()
 {
-    std::string filename = "assembly_files/example2_hello_world.asm";
+    std::string filename = "assembly_files/fib.asm";
     MIPS mips(filename);
 
     return 0;

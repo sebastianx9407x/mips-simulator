@@ -10,13 +10,14 @@ public:
     // Constructor
     DataSegment();
     ~DataSegment();
-    // Mememory
-    bool write(uint8_t value);
+    // Memory
+    bool write(const void *data);
     uint8_t read(uint32_t address);
-    std::uint32_t size;
+    std::uint32_t address;
 
 private:
     std::vector<uint8_t> memory;
+    bool resize();
 };
 
 #endif
